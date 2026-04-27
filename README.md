@@ -1,5 +1,4 @@
 # Agiliza-web
-SoftWare Web para unificação de serviços e vendas
 
 ## Índice
 
@@ -11,15 +10,16 @@ SoftWare Web para unificação de serviços e vendas
 ## Sobre o Projeto
 
 ### Título
-Título do Projeto
+Agiliza
 
 ### Descrição
-Descrição do seu projeto.
+SoftWare Web para unificação de serviços e vendas
 
 ### Componentes
-- Aluno(a) 1
-- Aluno(a) 2
-- Aluno(a) 3
+- Elison Guilherme Dantas Martins
+- Hugo Henrique De Vasconcelos Figueiredo 
+- João Vitor Batista Silva
+- Luciano de Medeiros Filho 
 
 ## Como clonar ou baixar
 
@@ -28,7 +28,7 @@ Você pode obter este repositório de três formas:
 ### Clonar via HTTPS
 
 ```bash
-git clone https://github.com/mvapedrosa/Eng-de-Software-UFRN.git
+git clone https://github.com/JVitorbs/Agiliza-web.git
 ```
 
 Isso criará uma cópia local do repositório em sua máquina.
@@ -38,7 +38,7 @@ Isso criará uma cópia local do repositório em sua máquina.
 Se você já configurou sua chave SSH no GitHub, pode clonar usando:
 
 ```bash
-git clone git@github.com:mvapedrosa/Eng-de-Software-UFRN.git
+git clone git@github.com:JVitorbs/Agiliza-web.git
 ```
 
 Isso criará uma cópia local do repositório em sua máquina.
@@ -46,7 +46,7 @@ Isso criará uma cópia local do repositório em sua máquina.
 ### Baixar como ZIP
 
 1. Acesse a página do repositório no GitHub:
-   [https://github.com/mvapedrosa/Eng-de-Software-UFRN](https://github.com/mvapedrosa/Eng-de-Software-UFRN)
+   [https://github.com/JVitorbs/Agiliza-web#](https://github.com/JVitorbs/Agiliza-web#)
 2. Clique no botão **Code** (verde).
 3. Selecione **Download ZIP**.
 4. Extraia o arquivo ZIP para o local desejado em seu computador.
