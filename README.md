@@ -16,7 +16,6 @@ Agiliza
 SoftWare Web para unificação de serviços e vendas
 
 ### Componentes
-- Elison Guilherme Dantas Martins
 - Hugo Henrique De Vasconcelos Figueiredo 
 - João Vitor Batista Silva
 - Luciano de Medeiros Filho 
