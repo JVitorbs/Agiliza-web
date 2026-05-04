@@ -56,12 +56,12 @@ Isso criará uma cópia local do repositório em sua máquina.
 > *Esta seção pode variar conforme a organização do repositório de cada grupo.*
 
 ```
-Eng-de-Software-UFRN/
+Agiliza-web/
 ├── LICENSE
 ├── README.md
-├── <diretório-x>/
-├── <diretório-y>/
-└── <diretório-z>/
+├── .gitignore
+└── docs/
+   └── historias_usuario.md
 ```
 
 - LICENSE: termos da licença do projeto (MIT).
