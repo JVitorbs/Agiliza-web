@@ -16,7 +16,6 @@ Agiliza
 SoftWare Web para unificação de serviços e vendas
 
 ### Componentes
-- Elison Guilherme Dantas Martins
 - Hugo Henrique De Vasconcelos Figueiredo 
 - João Vitor Batista Silva
 - Luciano de Medeiros Filho 
@@ -57,12 +56,12 @@ Isso criará uma cópia local do repositório em sua máquina.
 > *Esta seção pode variar conforme a organização do repositório de cada grupo.*
 
 ```
-Eng-de-Software-UFRN/
+Agiliza-web/
 ├── LICENSE
 ├── README.md
-├── <diretório-x>/
-├── <diretório-y>/
-└── <diretório-z>/
+├── .gitignore
+└── docs/
+   └── historias_usuario.md
 ```
 
 - LICENSE: termos da licença do projeto (MIT).

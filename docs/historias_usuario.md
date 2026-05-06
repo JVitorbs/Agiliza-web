@@ -68,7 +68,7 @@ graph TB
 - [ ] O usuário deve poder buscar produtos por nome ou categoria
 - [ ] O usuário deve poder adicionar produtos ao carrinho
 - [ ] O usuário deve poder finalizar a compra
-- [ ] O sistema deve registrar o pedido no histórico do usuário e gerar uma nota fiscal
+- [ ] O sistema deve registrar o pedido no histórico do usuário e gerar uma nota fiscal após a finalização da compra
 
 **Fluxo de Compra:**
 
