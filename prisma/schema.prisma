@@ -1,0 +1,192 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+enum AcaoAuditoria {
+  CREATE
+  UPDATE
+}
+
+model Auditoria {
+  id          Int           @id @default(autoincrement())
+  tabela      String
+  registroId  Int
+  coluna      String
+  valorAntigo Json?
+  valorNovo   Json?
+  acao        AcaoAuditoria
+  alteradoEm  DateTime      @default(now())
+  alteradoPor Int?
+
+  @@index([tabela, registroId])
+  @@index([alteradoEm])
+}
+
+model Funcionario {
+  id        Int      @id @default(autoincrement())
+  name      String
+  cpf     String   @unique
+  isManager Boolean  @default(false)
+  email     String  @unique
+  phone     String
+  notes     String?
+  enderecoId Int
+  endereco   Endereco @relation(fields: [enderecoId], references: [id])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+}
+
+model Empresa {
+  id        Int      @id @default(autoincrement())
+  name      String
+  razaoSocial String
+  cnpj     String   @unique
+  email     String   @unique
+  phone     String
+  enderecoId Int
+  endereco   Endereco @relation(fields: [enderecoId], references: [id])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+}
+
+model Endereco {
+  id        Int      @id @default(autoincrement())
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  country   String
+  empresas  Empresa[]
+  usuarios  Usuario[]
+  funcionarios Funcionario[]
+  entregas  Entrega[]
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+}
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  name      String
+  cpf     String   @unique
+  email     String   @unique
+  phone     String
+  password  String
+  enderecoId Int
+  endereco   Endereco @relation(fields: [enderecoId], references: [id])
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+
+  carrinho   Carrinho[]
+  entregas   Entrega[]
+  agendamentos Agendamento[]
+}
+
+model Carrinho {
+  id        Int      @id @default(autoincrement())
+  usuarioId  Int
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+
+  itens     Itens[]
+}
+
+model Itens {
+  id        Int      @id @default(autoincrement())
+  carrinhoId Int
+  carrinho   Carrinho @relation(fields: [carrinhoId], references: [id])
+  produtoId  Int
+  produto    Produto  @relation(fields: [produtoId], references: [id])
+  quantity   Int
+  servicoId    Int
+  servico  Servico @relation(fields: [servicoId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+}
+
+model Produto {
+  id        Int      @id @default(autoincrement())
+  name      String
+  description String?
+  price     Float
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+
+  itens   Itens[]
+  entregas Entrega[]
+}
+
+model Entrega {
+  id          Int      @id @default(autoincrement())
+  usuarioId    Int
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
+  enderecoId   Int
+  endereco     Endereco @relation(fields: [enderecoId], references: [id])
+  produtoId    Int
+  produto      Produto  @relation(fields: [produtoId], references: [id])
+  scheduledAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Int?
+  updatedBy   Int?
+}
+
+model Servico {
+  id        Int      @id @default(autoincrement())
+  name      String
+  description String?
+  price     Float
+  horario_disponivel String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy Int?
+  updatedBy Int?
+
+  itens   Itens[]
+  agendamentos Agendamento[]
+}
+
+model Agendamento {
+  id          Int      @id @default(autoincrement())
+  usuarioId    Int
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
+  servicoId    Int
+  servico      Servico  @relation(fields: [servicoId], references: [id])
+  scheduledAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Int?
+  updatedBy   Int?
+}
+
+
