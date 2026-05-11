@@ -101,6 +101,7 @@ model Usuario {
   carrinho   Carrinho[]
   entregas   Entrega[]
   agendamentos Agendamento[]
+  pagamentos Pagamento[]
 }
 
 model Carrinho {
@@ -143,6 +144,7 @@ model Produto {
 
   itens   Itens[]
   entregas Entrega[]
+  pagamentos Pagamento[]
 }
 
 model Entrega {
@@ -174,6 +176,7 @@ model Servico {
 
   itens   Itens[]
   agendamentos Agendamento[]
+  pagamentos Pagamento[]
 }
 
 model Agendamento {
@@ -189,4 +192,43 @@ model Agendamento {
   updatedBy   Int?
 }
 
+enum StatusPagamento {
+  PENDENTE
+  CONFIRMADO
+  FALHA
+  REEMBOLSADO
+  CANCELADO
+}
 
+enum MetodoPagamento {
+  CARTAO_CREDITO
+  CARTAO_DEBITO
+  PIX
+  BOLETO
+  TRANSFERENCIA
+}
+
+model Pagamento {
+  id              Int               @id @default(autoincrement())
+  usuarioId       Int
+  usuario         Usuario           @relation(fields: [usuarioId], references: [id])
+  produtoId       Int?
+  produto         Produto?          @relation(fields: [produtoId], references: [id])
+  servicoId       Int?
+  servico         Servico?          @relation(fields: [servicoId], references: [id])
+  valor           Float
+  status          StatusPagamento   @default(PENDENTE)
+  metodo          MetodoPagamento
+  descricao       String?
+  referencia      String?           @unique
+  dataProcessamento DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  createdBy       Int?
+  updatedBy       Int?
+
+  @@index([usuarioId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([dataProcessamento])
+}
