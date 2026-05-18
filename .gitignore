@@ -1,3 +1,7 @@
 .env
 node_modules/
+.next/
+out/
+coverage/
+next-env.d.ts
 /generated/prisma
