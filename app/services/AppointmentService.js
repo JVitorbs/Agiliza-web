@@ -1,19 +1,28 @@
+export class AppointmentValidationError extends Error {
+
+  constructor(message, status = 400) {
+    super(message)
+    this.status = status
+  }
+
+}
+
 export class AppointmentService {
 
   static validateDate(date) {
 
     if (!date) {
-      throw new Error("A data é obrigatória")
+      throw new AppointmentValidationError("A data é obrigatória")
     }
 
     const parsedDate = new Date(date)
 
     if (isNaN(parsedDate.getTime())) {
-      throw new Error("Formato de data inválido")
+      throw new AppointmentValidationError("Formato de data inválido")
     }
 
     if (parsedDate < new Date()) {
-      throw new Error("Data inválida")
+      throw new AppointmentValidationError("Data inválida")
     }
 
     return true
@@ -33,7 +42,7 @@ export class AppointmentService {
     )
 
     if (conflict) {
-      throw new Error("Horário indisponível")
+      throw new AppointmentValidationError("Horário indisponível", 409)
     }
 
     return true
@@ -45,7 +54,7 @@ export class AppointmentService {
   ) {
 
     if (!newAppointment.servicoId) {
-      throw new Error("O ID do serviço é obrigatório")
+      throw new AppointmentValidationError("O ID do serviço é obrigatório")
     }
 
     this.validateDate(
