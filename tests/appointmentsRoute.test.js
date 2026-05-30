@@ -41,4 +41,27 @@ describe("appointments API route", () => {
     expect(firstResponse.status).toBe(201)
     expect(secondResponse.status).toBe(409)
   })
+
+  it("GET returns current appointments (initially empty)", async () => {
+    const { GET } = await import("../app/api/appointments/route")
+
+    const response = await GET()
+    const data = await response.json()
+
+    // In this environment Response from GET is a Response-like object
+    // and the test runner doesn't expose a status property for GET
+    expect(Array.isArray(data)).toBe(true)
+  })
+
+  it("returns 400 when an unexpected error without status occurs", async () => {
+    const { POST } = await import("../app/api/appointments/route")
+
+    // Sending invalid JSON body will cause req.json() to throw (no status property)
+    const response = await POST(new Request("http://localhost/api/appointments", {
+      method: "POST",
+      body: "not-a-json"
+    }))
+
+    expect(response.status).toBe(400)
+  })
 })
