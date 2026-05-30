@@ -48,9 +48,8 @@ describe("appointments API route", () => {
     const response = await GET()
     const data = await response.json()
 
-    // In this environment Response from GET is a Response-like object
-    // and the test runner doesn't expose a status property for GET
-    expect(Array.isArray(data)).toBe(true)
+    expect(response.status).toBe(200)
+    expect(data).toEqual([])
   })
 
   it("returns 400 when an unexpected error without status occurs", async () => {
