@@ -3,6 +3,10 @@ import {
   appointments,
   services
 } from "../../data/store.js"
+import { prisma } from "../../lib/prisma.js"
+
+const useMemoryStore =
+  process.env.NODE_ENV === "test"
 
 const weekDays = [
   "domingo",
@@ -14,9 +18,71 @@ const weekDays = [
   "sabado"
 ]
 
+function getSelectedDay(date) {
+
+  return weekDays[
+    new Date(`${date}T00:00:00`).getDay()
+  ]
+
+}
+
+function validateServiceAvailability(
+  service,
+  date,
+  time
+) {
+
+  const selectedDay =
+    getSelectedDay(date)
+
+  if (
+    !service.availableDays.includes(
+      selectedDay
+    )
+  ) {
+    throw new Error("Dia indisponível")
+  }
+
+  if (
+    time < service.startTime ||
+    time > service.endTime
+  ) {
+    throw new Error("Horário indisponível")
+  }
+
+}
+
 export async function GET() {
 
-  return Response.json(appointments)
+  if (useMemoryStore) {
+    return Response.json(appointments)
+  }
+
+  const dbAppointments =
+    await prisma.agendamento.findMany({
+      include: {
+        servico: true
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    })
+
+  const result =
+    dbAppointments.map(
+      appointment => ({
+        id: appointment.id,
+        serviceId: appointment.servicoId,
+        servicoId: appointment.servicoId,
+        serviceName: appointment.servico.name,
+        date: appointment.date,
+        time: appointment.time,
+        scheduledAt:
+          appointment.scheduledAt.toISOString()
+      })
+    )
+
+  return Response.json(result)
 
 }
 
@@ -34,64 +100,139 @@ export async function POST(req) {
       body.date &&
       body.time
 
-    let service = null
+    if (useMemoryStore) {
 
-    if (isClientFlow) {
+      let service = null
 
-      service = services.find(
-        item => item.id === body.serviceId
+      if (isClientFlow) {
+
+        service = services.find(
+          item => item.id === body.serviceId
+        )
+
+        if (!service) {
+          throw new Error("Serviço não encontrado")
+        }
+
+        validateServiceAvailability(
+          service,
+          body.date,
+          body.time
+        )
+
+      }
+
+      const appointment = {
+        id: appointments.length + 1,
+        serviceId,
+        servicoId: serviceId,
+        serviceName:
+          service?.name ??
+          body.serviceName,
+        date:
+          body.date ??
+          body.scheduledAt?.split("T")[0],
+        time:
+          body.time ??
+          body.scheduledAt?.split("T")[1],
+        scheduledAt:
+          body.scheduledAt ??
+          `${body.date}T${body.time}`
+      }
+
+      AppointmentService.validateAppointment(
+        appointments,
+        appointment
       )
 
-      if (!service) {
-        throw new Error("Serviço não encontrado")
-      }
+      appointments.push(appointment)
 
-      const selectedDay = weekDays[
-        new Date(`${body.date}T00:00:00`).getDay()
-      ]
-
-      if (!service.availableDays.includes(selectedDay)) {
-        throw new Error("Dia indisponível")
-      }
-
-      if (
-        body.time < service.startTime ||
-        body.time > service.endTime
-      ) {
-        throw new Error("Horário indisponível")
-      }
+      return Response.json(
+        {
+          success: true,
+          data: appointment
+        },
+        {
+          status: 201
+        }
+      )
 
     }
 
-    const appointment = {
-      id: appointments.length + 1,
+    const service =
+      await prisma.servico.findUnique({
+        where: {
+          id: Number(serviceId)
+        }
+      })
 
-      serviceId,
-      servicoId: serviceId,
-
-      serviceName:
-        service?.name ??
-        body.serviceName,
-
-      date:
-        body.date ??
-        body.scheduledAt?.split("T")[0],
-
-      time:
-        body.time ??
-        body.scheduledAt?.split("T")[1],
-
-      scheduledAt:
-        body.scheduledAt ??
-        `${body.date}T${body.time}`
+    if (!service) {
+      throw new Error("Serviço não encontrado")
     }
 
-    AppointmentService.validateAppointment(
-      appointments,
-      appointment
+    if (!body.date) {
+      throw new Error("Data obrigatória")
+    }
+
+    if (!body.time) {
+      throw new Error("Horário obrigatório")
+    }
+
+    validateServiceAvailability(
+      service,
+      body.date,
+      body.time
     )
 
-    appointments.push(appointment)
+    const scheduledAt =
+      `${body.date}T${body.time}`
+
+    AppointmentService.validateDate(
+      scheduledAt
+    )
+
+    const conflict =
+      await prisma.agendamento.findFirst({
+        where: {
+          servicoId: Number(serviceId),
+          date: body.date,
+          time: body.time
+        }
+      })
+
+    if (conflict) {
+
+      return Response.json(
+        {
+          error: "Horário indisponível"
+        },
+        {
+          status: 409
+        }
+      )
+
+    }
+
+    const dbAppointment =
+      await prisma.agendamento.create({
+        data: {
+          servicoId: Number(serviceId),
+          date: body.date,
+          time: body.time,
+          scheduledAt:
+            new Date(scheduledAt)
+        }
+      })
+
+    const appointment = {
+      id: dbAppointment.id,
+      serviceId: dbAppointment.servicoId,
+      servicoId: dbAppointment.servicoId,
+      serviceName: service.name,
+      date: dbAppointment.date,
+      time: dbAppointment.time,
+      scheduledAt
+    }
 
     return Response.json(
       {

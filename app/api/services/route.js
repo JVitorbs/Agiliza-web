@@ -1,8 +1,27 @@
 import { services } from "../../data/store.js"
+import { ServiceService } from "../../services/ServiceService.js"
+import { prisma } from "../../lib/prisma.js"
+
+const useMemoryStore =
+  process.env.NODE_ENV === "test"
 
 export async function GET() {
 
-  return Response.json(services)
+  if (useMemoryStore) {
+    return Response.json(services)
+  }
+
+  const dbServices =
+    await prisma.servico.findMany({
+      where: {
+        active: true
+      },
+      orderBy: {
+        id: "asc"
+      }
+    })
+
+  return Response.json(dbServices)
 
 }
 
@@ -12,32 +31,7 @@ export async function POST(req) {
 
     const body = await req.json()
 
-    if (!body.name) {
-      throw new Error("Nome obrigatório")
-    }
-
-    if (Number(body.price) <= 0) {
-      throw new Error("Preço inválido")
-    }
-
-    if (
-      !body.availableDays ||
-      !Array.isArray(body.availableDays) ||
-      body.availableDays.length === 0
-    ) {
-      throw new Error("Selecione pelo menos um dia")
-    }
-
-    if (!body.startTime || !body.endTime) {
-      throw new Error("Informe horário inicial e final")
-    }
-
-    if (body.startTime >= body.endTime) {
-      throw new Error("Horário inicial deve ser menor que o final")
-    }
-
-    const service = {
-      id: services.length + 1,
+    const serviceData = {
       name: body.name,
       description: body.description,
       price: Number(body.price),
@@ -46,7 +40,28 @@ export async function POST(req) {
       endTime: body.endTime
     }
 
-    services.push(service)
+    ServiceService.validateService(serviceData)
+
+    if (useMemoryStore) {
+
+      const service = {
+        id: services.length + 1,
+        ...serviceData
+      }
+
+      services.push(service)
+
+      return Response.json(
+        service,
+        { status: 201 }
+      )
+
+    }
+
+    const service =
+      await prisma.servico.create({
+        data: serviceData
+      })
 
     return Response.json(
       service,
@@ -70,23 +85,74 @@ export async function PUT(req) {
 
     const body = await req.json()
 
-    const service = services.find(
-      item => item.id === body.id
-    )
+    if (useMemoryStore) {
 
-    if (!service) {
+      const service = services.find(
+        item => item.id === body.id
+      )
+
+      if (!service) {
+        throw new Error("Serviço não encontrado")
+      }
+
+      const updatedService = {
+        ...service,
+        name: body.name ?? service.name,
+        description: body.description ?? service.description,
+        price:
+          body.price !== undefined
+            ? Number(body.price)
+            : service.price,
+        availableDays: body.availableDays ?? service.availableDays,
+        startTime: body.startTime ?? service.startTime,
+        endTime: body.endTime ?? service.endTime
+      }
+
+      ServiceService.validateService(updatedService)
+
+      service.name = updatedService.name
+      service.description = updatedService.description
+      service.price = updatedService.price
+      service.availableDays = updatedService.availableDays
+      service.startTime = updatedService.startTime
+      service.endTime = updatedService.endTime
+
+      return Response.json(service)
+
+    }
+
+    const existingService =
+      await prisma.servico.findUnique({
+        where: {
+          id: Number(body.id)
+        }
+      })
+
+    if (!existingService) {
       throw new Error("Serviço não encontrado")
     }
 
-    service.name = body.name ?? service.name
-    service.description = body.description ?? service.description
-    service.price =
-      body.price !== undefined
-        ? Number(body.price)
-        : service.price
-    service.availableDays = body.availableDays ?? service.availableDays
-    service.startTime = body.startTime ?? service.startTime
-    service.endTime = body.endTime ?? service.endTime
+    const updatedService = {
+      name: body.name ?? existingService.name,
+      description: body.description ?? existingService.description,
+      price:
+        body.price !== undefined
+          ? Number(body.price)
+          : existingService.price,
+      availableDays: body.availableDays ?? existingService.availableDays,
+      startTime: body.startTime ?? existingService.startTime,
+      endTime: body.endTime ?? existingService.endTime
+    }
+
+    ServiceService.validateService(updatedService)
+
+    const service =
+      await prisma.servico.update({
+        where: {
+          id: Number(body.id)
+        },
+        data: updatedService
+      })
 
     return Response.json(service)
 
@@ -107,15 +173,43 @@ export async function DELETE(req) {
 
     const body = await req.json()
 
-    const index = services.findIndex(
-      item => item.id === body.id
-    )
+    if (useMemoryStore) {
 
-    if (index === -1) {
+      const index = services.findIndex(
+        item => item.id === body.id
+      )
+
+      if (index === -1) {
+        throw new Error("Serviço não encontrado")
+      }
+
+      services.splice(index, 1)
+
+      return Response.json({
+        success: true
+      })
+
+    }
+
+    const existingService =
+      await prisma.servico.findUnique({
+        where: {
+          id: Number(body.id)
+        }
+      })
+
+    if (!existingService) {
       throw new Error("Serviço não encontrado")
     }
 
-    services.splice(index, 1)
+    await prisma.servico.update({
+      where: {
+        id: Number(body.id)
+      },
+      data: {
+        active: false
+      }
+    })
 
     return Response.json({
       success: true
