@@ -37,7 +37,14 @@ const quickFacts = [
   { label: 'Público', value: 'Devs que vão continuar o produto' },
 ];
 
-const stack = ['App Router', 'ESLint', 'Prisma', 'PostgreSQL', 'React 19', 'Next.js 16'];
+const stack = [
+  'App Router',
+  'ESLint',
+  'Prisma',
+  'PostgreSQL',
+  'React 19',
+  'Next.js 16',
+];
 
 const nextSteps = [
   'Mapear o modelo de dados em Prisma para produtos, serviços, pedidos e agendamentos.',
@@ -60,6 +67,73 @@ export default function Home() {
             <strong>Next.js rodando</strong>
             <p>Scaffold atual com App Router, ícone e ESLint validado.</p>
           </div>
+        </div>
+      </section>
+
+      <section className="panel-grid">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Acesso rápido</p>
+            <h2>Testar funcionalidades do MVP</h2>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            marginTop: '20px',
+          }}
+        >
+          <Link
+            className="button primary"
+            href="/funcionario/produtos"
+          >
+            Funcionário - Produtos
+          </Link>
+
+          <Link
+            className="button secondary"
+            href="/funcionario/servicos"
+          >
+            Funcionário - Serviços
+          </Link>
+
+          <Link
+            className="button primary"
+            href="/cliente/produtos"
+          >
+            Cliente - Produtos
+          </Link>
+
+          <Link
+            className="button secondary"
+            href="/cliente/carrinho"
+          >
+            Cliente - Carrinho
+          </Link>
+
+          <Link
+            className="button primary"
+            href="/cliente/pedidos"
+          >
+            Cliente - Pedidos
+          </Link>
+
+          <Link
+            className="button secondary"
+            href="/cliente/servicos"
+          >
+            Cliente - Serviços
+          </Link>
+
+          <Link
+            className="button primary"
+            href="/cliente/agendamentos"
+          >
+            Cliente - Agendamentos
+          </Link>
         </div>
       </section>
 
@@ -96,10 +170,13 @@ export default function Home() {
             <span />
             <span />
           </div>
+
           <p className="terminal-label">Comandos úteis</p>
+
           <pre>{`npm run dev
 npm run build
 npm run lint`}</pre>
+
           <p className="terminal-note">
             Base pronta para evoluir com Prisma e as próximas rotas.
           </p>
@@ -121,8 +198,11 @@ npm run lint`}</pre>
                 <span className="story-code">{story.code}</span>
                 <span className="story-priority">{story.priority}</span>
               </div>
+
               <h3>{story.title}</h3>
+
               <p>{story.description}</p>
+
               <div className="story-meta">
                 <span>{story.label}</span>
                 <span>{story.points}</span>
@@ -135,7 +215,9 @@ npm run lint`}</pre>
       <section className="panel-grid panel-grid--split" id="next-steps">
         <article className="info-card">
           <p className="eyebrow">Stack e estrutura</p>
+
           <h2>Componentes que já estão prontos</h2>
+
           <div className="chip-list">
             {stack.map((item) => (
               <span className="chip" key={item}>
@@ -147,7 +229,9 @@ npm run lint`}</pre>
 
         <article className="info-card info-card--accent">
           <p className="eyebrow">Próximos passos</p>
+
           <h2>Roteiro sugerido para a continuidade</h2>
+
           <ol className="steps-list">
             {nextSteps.map((step) => (
               <li key={step}>{step}</li>

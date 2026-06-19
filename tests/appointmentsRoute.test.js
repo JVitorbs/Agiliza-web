@@ -1,66 +1,236 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import {
+  beforeEach,
+  describe,
+  expect,
+  it
+} from "vitest"
 
-describe("appointments API route", () => {
-  beforeEach(() => {
-    vi.resetModules()
-  })
+import {
+  GET,
+  POST
+} from "../app/api/appointments/route.js"
 
-  it("returns 400 for invalid appointment payload", async () => {
-    const { POST } = await import("../app/api/appointments/route")
+import {
+  appointments,
+  services
+} from "../app/data/store.js"
 
-    const response = await POST(new Request("http://localhost/api/appointments", {
-      method: "POST",
-      body: JSON.stringify({
-        nomeCliente: "João",
-        servicoId: "corte",
-        scheduledAt: "2024-01-01T10:00:00.000Z"
-      })
-    }))
+describe(
+  "appointments API route",
+  () => {
 
-    expect(response.status).toBe(400)
-  })
+    beforeEach(() => {
 
-  it("returns 409 for appointment conflict", async () => {
-    const { POST } = await import("../app/api/appointments/route")
-    const scheduledAt = new Date(Date.now() + 60 * 60 * 1000).toISOString()
-    const appointment = {
-      nomeCliente: "João",
-      servicoId: "corte",
-      scheduledAt
-    }
+      appointments.length = 0
+      services.length = 0
 
-    const firstResponse = await POST(new Request("http://localhost/api/appointments", {
-      method: "POST",
-      body: JSON.stringify(appointment)
-    }))
-    const secondResponse = await POST(new Request("http://localhost/api/appointments", {
-      method: "POST",
-      body: JSON.stringify(appointment)
-    }))
+    })
 
-    expect(firstResponse.status).toBe(201)
-    expect(secondResponse.status).toBe(409)
-  })
+    it(
+      "returns 400 for invalid appointment payload",
+      async () => {
 
-  it("GET returns current appointments (initially empty)", async () => {
-    const { GET } = await import("../app/api/appointments/route")
+        const response = await POST({
+          json: async () => ({})
+        })
 
-    const response = await GET()
-    const data = await response.json()
+        expect(response.status).toBe(400)
 
-    expect(response.status).toBe(200)
-    expect(data).toEqual([])
-  })
+        const body = await response.json()
 
-  it("returns 400 when an unexpected error without status occurs", async () => {
-    const { POST } = await import("../app/api/appointments/route")
+        expect(body.error).toBeDefined()
 
-    // Sending invalid JSON body will cause req.json() to throw (no status property)
-    const response = await POST(new Request("http://localhost/api/appointments", {
-      method: "POST",
-      body: "not-a-json"
-    }))
+      }
+    )
 
-    expect(response.status).toBe(400)
-  })
-})
+    it(
+      "returns 409 for appointment conflict using old payload format",
+      async () => {
+
+        const payload = {
+          servicoId: 1,
+          scheduledAt: "2030-01-01T10:00"
+        }
+
+        const firstResponse = await POST({
+          json: async () => payload
+        })
+
+        const secondResponse = await POST({
+          json: async () => payload
+        })
+
+        expect(firstResponse.status).toBe(201)
+        expect(secondResponse.status).toBe(409)
+
+        const body = await secondResponse.json()
+
+        expect(body.error).toBe("Horário indisponível")
+
+      }
+    )
+
+    it(
+      "returns 400 when service does not exist in client flow",
+      async () => {
+
+        const response = await POST({
+          json: async () => ({
+            serviceId: 999,
+            date: "2030-01-01",
+            time: "10:00"
+          })
+        })
+
+        expect(response.status).toBe(400)
+
+        const body = await response.json()
+
+        expect(body.error).toBe("Serviço não encontrado")
+
+      }
+    )
+
+    it(
+      "returns 400 when selected day is not available",
+      async () => {
+
+        services.push({
+          id: 1,
+          name: "Corte de cabelo",
+          description: "Corte masculino",
+          price: 35,
+          availableDays: [
+            "segunda"
+          ],
+          startTime: "08:00",
+          endTime: "18:00"
+        })
+
+        const response = await POST({
+          json: async () => ({
+            serviceId: 1,
+            date: "2030-01-01",
+            time: "10:00"
+          })
+        })
+
+        expect(response.status).toBe(400)
+
+        const body = await response.json()
+
+        expect(body.error).toBe("Dia indisponível")
+
+      }
+    )
+
+    it(
+      "returns 400 when selected time is outside service range",
+      async () => {
+
+        services.push({
+          id: 1,
+          name: "Corte de cabelo",
+          description: "Corte masculino",
+          price: 35,
+          availableDays: [
+            "terca"
+          ],
+          startTime: "08:00",
+          endTime: "18:00"
+        })
+
+        const response = await POST({
+          json: async () => ({
+            serviceId: 1,
+            date: "2030-01-01",
+            time: "22:00"
+          })
+        })
+
+        expect(response.status).toBe(400)
+
+        const body = await response.json()
+
+        expect(body.error).toBe("Horário indisponível")
+
+      }
+    )
+
+    it(
+      "returns 201 when appointment is valid in client flow",
+      async () => {
+
+        services.push({
+          id: 1,
+          name: "Corte de cabelo",
+          description: "Corte masculino",
+          price: 35,
+          availableDays: [
+            "terca"
+          ],
+          startTime: "08:00",
+          endTime: "18:00"
+        })
+
+        const response = await POST({
+          json: async () => ({
+            serviceId: 1,
+            date: "2030-01-01",
+            time: "10:00"
+          })
+        })
+
+        expect(response.status).toBe(201)
+
+        const body = await response.json()
+
+        expect(body.success).toBe(true)
+        expect(body.data.id).toBe(1)
+        expect(body.data.serviceId).toBe(1)
+        expect(body.data.servicoId).toBe(1)
+        expect(body.data.serviceName).toBe("Corte de cabelo")
+        expect(body.data.date).toBe("2030-01-01")
+        expect(body.data.time).toBe("10:00")
+        expect(body.data.scheduledAt).toBe("2030-01-01T10:00")
+
+      }
+    )
+
+    it(
+      "GET returns current appointments",
+      async () => {
+
+        const response = await GET()
+
+        expect(response.status).toBe(200)
+
+        const body = await response.json()
+
+        expect(Array.isArray(body)).toBe(true)
+        expect(body.length).toBe(0)
+
+      }
+    )
+
+    it(
+      "returns 400 when an unexpected error without status occurs",
+      async () => {
+
+        const response = await POST({
+          json: async () => {
+            throw new Error("Erro inesperado")
+          }
+        })
+
+        expect(response.status).toBe(400)
+
+        const body = await response.json()
+
+        expect(body.error).toBe("Erro inesperado")
+
+      }
+    )
+
+  }
+)
