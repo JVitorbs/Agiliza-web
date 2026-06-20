@@ -16,6 +16,9 @@ export async function GET() {
       where: {
         active: true
       },
+      include: {
+        empresa: { select: { id: true, name: true } }
+      },
       orderBy: {
         id: "asc"
       }
@@ -58,9 +61,11 @@ export async function POST(req) {
 
     }
 
+    const empresaId = Number(req.headers.get("x-user-empresa-id") ?? body.empresaId)
+
     const service =
       await prisma.servico.create({
-        data: serviceData
+        data: { ...serviceData, empresaId }
       })
 
     return Response.json(
