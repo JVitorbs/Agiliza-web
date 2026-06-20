@@ -147,4 +147,58 @@ describe("Auth API", () => {
 
     expect(response.status).toBe(400)
   })
+
+  it("deve rejeitar funcionário inativo", async () => {
+    mockPrisma.funcionario.findUnique.mockResolvedValue({
+      id: 1, name: "Inativo", email: "inativo@empresa.com", password: "hash", active: false,
+    })
+    mockPrisma.usuario.findUnique.mockResolvedValue(null)
+    mockBcrypt.default.compare.mockResolvedValue(true)
+
+    const { POST } = await import("../app/api/auth/login/route.js")
+
+    const response = await POST(
+      new Request("http://localhost/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: "inativo@empresa.com", password: "123456" }),
+      })
+    )
+
+    expect(response.status).toBe(403)
+    const data = await response.json()
+    expect(data.error).toBe("Conta inativa")
+  })
+
+  it("deve rejeitar cliente inativo", async () => {
+    mockPrisma.funcionario.findUnique.mockResolvedValue(null)
+    mockPrisma.usuario.findUnique.mockResolvedValue({
+      id: 2, name: "Inativo", email: "inativo@email.com", password: "hash", active: false,
+    })
+    mockBcrypt.default.compare.mockResolvedValue(true)
+
+    const { POST } = await import("../app/api/auth/login/route.js")
+
+    const response = await POST(
+      new Request("http://localhost/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: "inativo@email.com", password: "123456" }),
+      })
+    )
+
+    expect(response.status).toBe(403)
+  })
+
+  it("deve retornar 500 para JSON inválido", async () => {
+    const { POST } = await import("../app/api/auth/login/route.js")
+
+    const response = await POST(
+      new Request("http://localhost/api/auth/login", {
+        method: "POST",
+        body: "not-json",
+        headers: { "Content-Type": "application/json" },
+      })
+    )
+
+    expect(response.status).toBe(500)
+  })
 })

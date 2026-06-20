@@ -557,4 +557,153 @@ describe("appointments API route", () => {
 
   })
 
+  it("returns 400 for past date using Prisma", async () => {
+
+    mockPrisma.servico.findUnique.mockResolvedValue({
+      id: 1,
+      name: "Corte de cabelo",
+      availableDays: ["quarta"],
+      startTime: "08:00",
+      endTime: "18:00"
+    })
+
+    const { POST } =
+      await loadAppointmentsRoute("development")
+
+    const response =
+      await POST({
+        json: async () => ({
+          serviceId: 1,
+          date: "2020-01-01",
+          time: "10:00"
+        })
+      })
+
+    expect(response.status).toBe(400)
+
+    const body =
+      await response.json()
+
+    expect(body.error).toBe("Data inválida")
+
+  })
+
+  it("returns 400 when Prisma findUnique throws using Prisma", async () => {
+
+    mockPrisma.servico.findUnique.mockRejectedValue(
+      new Error("Connection lost")
+    )
+
+    const { POST } =
+      await loadAppointmentsRoute("development")
+
+    const response =
+      await POST({
+        json: async () => ({
+          serviceId: 1,
+          date: "2030-01-01",
+          time: "10:00"
+        })
+      })
+
+    expect(response.status).toBe(400)
+
+    const body =
+      await response.json()
+
+    expect(body.error).toBe("Connection lost")
+
+  })
+
+  it("returns 400 when Prisma create throws using Prisma", async () => {
+
+    mockPrisma.servico.findUnique.mockResolvedValue({
+      id: 1,
+      name: "Corte de cabelo",
+      availableDays: ["terca"],
+      startTime: "08:00",
+      endTime: "18:00"
+    })
+
+    mockPrisma.agendamento.findFirst.mockResolvedValue(null)
+
+    mockPrisma.agendamento.create.mockRejectedValue(
+      new Error("DB timeout")
+    )
+
+    const { POST } =
+      await loadAppointmentsRoute("development")
+
+    const response =
+      await POST({
+        json: async () => ({
+          serviceId: 1,
+          date: "2030-01-01",
+          time: "10:00"
+        })
+      })
+
+    expect(response.status).toBe(400)
+
+    const body =
+      await response.json()
+
+    expect(body.error).toBe("DB timeout")
+
+  })
+
+  it("returns 201 with old format using memory", async () => {
+
+    const { POST } =
+      await loadAppointmentsRoute("test")
+
+    const response =
+      await POST({
+        json: async () => ({
+          servicoId: 1,
+          scheduledAt: "2030-01-01T10:00"
+        })
+      })
+
+    expect(response.status).toBe(201)
+
+    const body =
+      await response.json()
+
+    expect(body.success).toBe(true)
+    expect(body.data.scheduledAt).toBe("2030-01-01T10:00")
+
+  })
+
+  it("returns 400 for invalid date format using Prisma", async () => {
+
+    mockPrisma.servico.findUnique.mockResolvedValue({
+      id: 1,
+      name: "Corte de cabelo",
+      availableDays: ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"],
+      startTime: "08:00",
+      endTime: "18:00"
+    })
+
+    const { POST } =
+      await loadAppointmentsRoute("development")
+
+    const response =
+      await POST({
+        json: async () => ({
+          serviceId: 1,
+          date: "invalid-date",
+          time: "10:00"
+        })
+      })
+
+    expect(response.status).toBe(400)
+
+    const body =
+      await response.json()
+
+    expect(body.error).toBe("Dia indisponível")
+
+  })
+
 })
