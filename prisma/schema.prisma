@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 enum AcaoAuditoria {
@@ -33,163 +33,258 @@ model Auditoria {
 }
 
 model Funcionario {
-  id        Int      @id @default(autoincrement())
-  name      String
-  cpf     String   @unique
-  isManager Boolean  @default(false)
-  email     String  @unique
-  phone     String
-  notes     String?
+  id         Int      @id @default(autoincrement())
+  name       String
+  cpf        String   @unique
+  isManager  Boolean  @default(false)
+  email      String   @unique
+  password   String?
+  phone      String
+  notes      String?
+  empresaId  Int?
+  empresa    Empresa? @relation(fields: [empresaId], references: [id])
   enderecoId Int
   endereco   Endereco @relation(fields: [enderecoId], references: [id])
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy Int?
-  updatedBy Int?
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  Int?
+  updatedBy  Int?
+
+  @@index([empresaId])
 }
 
 model Empresa {
-  id        Int      @id @default(autoincrement())
-  name      String
+  id          Int           @id @default(autoincrement())
+  name        String
   razaoSocial String
-  cnpj     String   @unique
-  email     String   @unique
-  phone     String
-  enderecoId Int
-  endereco   Endereco @relation(fields: [enderecoId], references: [id])
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy Int?
-  updatedBy Int?
+  cnpj        String        @unique
+  email       String        @unique
+  phone       String
+  password    String?
+  enderecoId  Int
+  endereco    Endereco      @relation(fields: [enderecoId], references: [id])
+  funcionarios Funcionario[]
+  produtos     Produto[]
+  servicos     Servico[]
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdBy    Int?
+  updatedBy    Int?
 }
 
 model Endereco {
-  id        Int      @id @default(autoincrement())
-  street    String
-  city      String
-  state     String
-  zipCode   String
-  country   String
-  empresas  Empresa[]
-  usuarios  Usuario[]
+  id           Int           @id @default(autoincrement())
+  street       String
+  city         String
+  state        String
+  zipCode      String
+  country      String
+  empresas     Empresa[]
+  usuarios     Usuario[]
   funcionarios Funcionario[]
-  entregas  Entrega[]
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy Int?
-  updatedBy Int?
+  entregas     Entrega[]
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdBy    Int?
+  updatedBy    Int?
 }
 
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  name      String
-  cpf     String   @unique
-  email     String   @unique
-  phone     String
-  password  String
-  enderecoId Int
-  endereco   Endereco @relation(fields: [enderecoId], references: [id])
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy Int?
-  updatedBy Int?
+  id          Int      @id @default(autoincrement())
+  name        String
+  cpf         String   @unique
+  email       String   @unique
+  phone       String
+  password    String
+  enderecoId  Int
+  endereco    Endereco @relation(fields: [enderecoId], references: [id])
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Int?
+  updatedBy   Int?
 
-  carrinho   Carrinho[]
-  entregas   Entrega[]
+  carrinho     Carrinho[]
+  entregas     Entrega[]
   agendamentos Agendamento[]
-  pagamentos Pagamento[]
+  pagamentos   Pagamento[]
+  pedidos      Pedido[]
 }
 
 model Carrinho {
   id        Int      @id @default(autoincrement())
-  usuarioId  Int
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId Int?
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   createdBy Int?
   updatedBy Int?
 
-  itens     Itens[]
+  itens Itens[]
+
+  @@index([usuarioId])
 }
 
 model Itens {
-  id        Int      @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   carrinhoId Int
   carrinho   Carrinho @relation(fields: [carrinhoId], references: [id])
-  produtoId  Int
-  produto    Produto  @relation(fields: [produtoId], references: [id])
-  quantity   Int
-  servicoId    Int
-  servico  Servico @relation(fields: [servicoId], references: [id])
+
+  produtoId Int?
+  produto   Produto? @relation(fields: [produtoId], references: [id])
+
+  servicoId Int?
+  servico   Servico? @relation(fields: [servicoId], references: [id])
+
+  quantity  Int      @default(1)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   createdBy Int?
   updatedBy Int?
+
+  @@index([carrinhoId])
+  @@index([produtoId])
+  @@index([servicoId])
 }
 
 model Produto {
-  id        Int      @id @default(autoincrement())
-  name      String
+  id          Int      @id @default(autoincrement())
+  name        String
   description String?
-  price     Float
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy Int?
-  updatedBy Int?
+  price       Float
+  empresaId   Int
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   Int?
+  updatedBy   Int?
 
-  itens   Itens[]
-  entregas Entrega[]
-  pagamentos Pagamento[]
+  itens       Itens[]
+  entregas    Entrega[]
+  pagamentos  Pagamento[]
+  pedidoItens PedidoItem[]
+
+  @@index([empresaId])
 }
 
 model Entrega {
   id          Int      @id @default(autoincrement())
-  usuarioId    Int
-  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
-  enderecoId   Int
-  endereco     Endereco @relation(fields: [enderecoId], references: [id])
-  produtoId    Int
-  produto      Produto  @relation(fields: [produtoId], references: [id])
+  usuarioId   Int?
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+  enderecoId  Int
+  endereco    Endereco @relation(fields: [enderecoId], references: [id])
+  produtoId   Int
+  produto     Produto  @relation(fields: [produtoId], references: [id])
   scheduledAt DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdBy   Int?
   updatedBy   Int?
+
+  @@index([usuarioId])
+  @@index([enderecoId])
+  @@index([produtoId])
 }
 
 model Servico {
-  id        Int      @id @default(autoincrement())
-  name      String
-  description String?
-  price     Float
-  horario_disponivel String
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  createdBy Int?
-  updatedBy Int?
+  id            Int      @id @default(autoincrement())
+  name          String
+  description   String?
+  price         Float
+  empresaId     Int
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
+  availableDays String[]
+  startTime     String
+  endTime       String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  createdBy     Int?
+  updatedBy     Int?
 
-  itens   Itens[]
-  agendamentos Agendamento[]
-  pagamentos Pagamento[]
+  itens         Itens[]
+  agendamentos  Agendamento[]
+  pagamentos    Pagamento[]
+  pedidoItens   PedidoItem[]
+
+  @@index([empresaId])
 }
 
 model Agendamento {
   id          Int      @id @default(autoincrement())
-  usuarioId    Int
-  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
-  servicoId    Int
-  servico      Servico  @relation(fields: [servicoId], references: [id])
+  usuarioId   Int?
+  usuario     Usuario? @relation(fields: [usuarioId], references: [id])
+
+  servicoId   Int
+  servico     Servico  @relation(fields: [servicoId], references: [id])
+
+  date        String?
+  time        String?
   scheduledAt DateTime
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   createdBy   Int?
   updatedBy   Int?
+
+  @@unique([servicoId, scheduledAt])
+  @@index([usuarioId])
+  @@index([servicoId])
+  @@index([servicoId, date, time])
+}
+
+enum PedidoStatus {
+  ABERTO
+  FINALIZADO
+  CANCELADO
+}
+
+model Pedido {
+  id            Int          @id @default(autoincrement())
+  usuarioId     Int?
+  usuario       Usuario?     @relation(fields: [usuarioId], references: [id])
+  total         Float
+  status        PedidoStatus @default(FINALIZADO)
+  invoiceNumber String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  createdBy     Int?
+  updatedBy     Int?
+
+  itens       PedidoItem[]
+  pagamentos  Pagamento[]
+
+  @@index([usuarioId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PedidoItem {
+  id        Int     @id @default(autoincrement())
+  pedidoId  Int
+  pedido    Pedido  @relation(fields: [pedidoId], references: [id])
+
+  produtoId Int?
+  produto   Produto? @relation(fields: [produtoId], references: [id])
+
+  servicoId Int?
+  servico   Servico? @relation(fields: [servicoId], references: [id])
+
+  name      String
+  quantity  Int      @default(1)
+  unitPrice Float
+  subtotal  Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([pedidoId])
+  @@index([produtoId])
+  @@index([servicoId])
 }
 
 enum StatusPagamento {
@@ -209,25 +304,34 @@ enum MetodoPagamento {
 }
 
 model Pagamento {
-  id              Int               @id @default(autoincrement())
-  usuarioId       Int
-  usuario         Usuario           @relation(fields: [usuarioId], references: [id])
-  produtoId       Int?
-  produto         Produto?          @relation(fields: [produtoId], references: [id])
-  servicoId       Int?
-  servico         Servico?          @relation(fields: [servicoId], references: [id])
-  valor           Float
-  status          StatusPagamento   @default(PENDENTE)
-  metodo          MetodoPagamento
-  descricao       String?
-  referencia      String?           @unique
+  id                Int             @id @default(autoincrement())
+  usuarioId         Int?
+  usuario           Usuario?        @relation(fields: [usuarioId], references: [id])
+
+  produtoId         Int?
+  produto           Produto?        @relation(fields: [produtoId], references: [id])
+
+  servicoId         Int?
+  servico           Servico?        @relation(fields: [servicoId], references: [id])
+
+  pedidoId          Int?
+  pedido            Pedido?         @relation(fields: [pedidoId], references: [id])
+
+  valor             Float
+  status            StatusPagamento @default(PENDENTE)
+  metodo            MetodoPagamento
+  descricao         String?
+  referencia        String?         @unique
   dataProcessamento DateTime?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  createdBy       Int?
-  updatedBy       Int?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  createdBy         Int?
+  updatedBy         Int?
 
   @@index([usuarioId])
+  @@index([produtoId])
+  @@index([servicoId])
+  @@index([pedidoId])
   @@index([status])
   @@index([createdAt])
   @@index([dataProcessamento])

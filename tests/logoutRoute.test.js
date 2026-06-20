@@ -1,17 +1,27 @@
-import { describe, expect, it } from "vitest";
-import { POST } from "../app/api/auth/logout/route";
+import { afterEach, describe, expect, it, vi } from "vitest"
+
+const mockCookieStore = vi.hoisted(() => ({
+  set: vi.fn(),
+  delete: vi.fn(),
+}))
+
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(() => mockCookieStore),
+}))
 
 describe("Logout API", () => {
+  afterEach(() => {
+    vi.clearAllMocks()
+  })
 
   it("deve retornar sucesso no logout", async () => {
+    const { POST } = await import("../app/api/auth/logout/route.js")
 
-    const response = await POST();
+    const response = await POST()
 
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
-
-  });
-
-});
+    expect(response.status).toBe(200)
+    const data = await response.json()
+    expect(data.success).toBe(true)
+    expect(mockCookieStore.delete).toHaveBeenCalledWith("agiliza_token")
+  })
+})

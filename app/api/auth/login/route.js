@@ -1,47 +1,62 @@
-import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import { prisma } from "../../../lib/prisma.js"
+import { cookies } from "next/headers"
 
-const USERS = [
-  {
-    email: "admin@agiliza.com",
-    password: "123456",
-    role: "admin",
-  },
-];
+const JWT_SECRET = process.env.JWT_SECRET ?? "agiliza-secret-dev"
 
 export async function POST(req) {
   try {
-    const { email, password } = await req.json();
+    const { email, password } = await req.json()
 
-    const user = USERS.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (!user) {
-      return Response.json(
-        { error: "Credenciais inválidas" },
-        { status: 401 }
-      );
+    if (!email || !password) {
+      return Response.json({ error: "Email e senha obrigatórios" }, { status: 400 })
     }
 
-    const token = jwt.sign(
-      {
-        email: user.email,
-        role: user.role,
-      },
-      "agiliza-secret",
-      {
-        expiresIn: "1h",
-      }
-    );
+    // Tenta funcionário primeiro, depois usuário
+    let principal = await prisma.funcionario.findUnique({ where: { email } })
+    let role = "funcionario"
 
-    return Response.json({
-      success: true,
-      token,
-    });
+    if (!principal) {
+      principal = await prisma.usuario.findUnique({ where: { email } })
+      role = "cliente"
+    }
+
+    if (!principal) {
+      return Response.json({ error: "Credenciais inválidas" }, { status: 401 })
+    }
+
+    const passwordOk = await bcrypt.compare(password, principal.password ?? "")
+
+    if (!passwordOk) {
+      return Response.json({ error: "Credenciais inválidas" }, { status: 401 })
+    }
+
+    if (principal.active === false) {
+      return Response.json({ error: "Conta inativa" }, { status: 403 })
+    }
+
+    const payload = {
+      sub: principal.id,
+      email: principal.email,
+      name: principal.name,
+      role,
+      empresaId: role === "funcionario" ? principal.empresaId ?? null : null,
+    }
+
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" })
+
+    const cookieStore = await cookies()
+    cookieStore.set("agiliza_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 8,
+      path: "/",
+    })
+
+    return Response.json({ success: true, user: payload })
   } catch (error) {
-    return Response.json(
-      { error: error.message },
-      { status: 500 }
-    );
+    return Response.json({ error: error.message }, { status: 500 })
   }
 }
