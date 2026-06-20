@@ -13,8 +13,6 @@ export default function CartPage() {
   const [finishing, setFinishing] = useState(false)
   const [address, setAddress] = useState(null)
 
-  useEffect(() => { loadData() }, [])
-
   async function loadData() {
     setLoading(true)
     const [cartRes, meRes] = await Promise.all([
@@ -31,39 +29,48 @@ export default function CartPage() {
     setLoading(false)
   }
 
-  async function removeItem(id) {
-    const res = await fetch("/api/cart", {
+  useEffect(() => { queueMicrotask(loadData) }, [])
+
+  function removeItem(id) {
+    const backup = items
+    setItems(prev => prev.filter(i => i.id !== id))
+    fetch("/api/cart", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
-    })
-    const data = await res.json()
-    if (data.error) { alert(data.error); return }
-    window.dispatchEvent(new Event("cart-updated"))
-    await loadData()
+    }).then(r => r.json()).then(data => {
+      if (data.error) { setItems(backup); alert(data.error); return }
+      window.dispatchEvent(new Event("cart-updated"))
+    }).catch(() => setItems(backup))
   }
 
-  async function updateQuantity(id, delta) {
+  function updateQuantity(id, delta) {
+    const backup = items
     const item = items.find(i => i.id === id)
     if (!item) return
     const newQty = item.quantity + delta
     if (newQty < 1) return removeItem(id)
-    await fetch("/api/cart", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    })
-    await fetch("/api/cart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        produtoId: item.produtoId,
-        servicoId: item.servicoId,
-        quantity: newQty,
+    setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: newQty } : i))
+    Promise.all([
+      fetch("/api/cart", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
       }),
-    })
-    window.dispatchEvent(new Event("cart-updated"))
-    await loadData()
+      fetch("/api/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          produtoId: item.produtoId,
+          servicoId: item.servicoId,
+          quantity: newQty,
+        }),
+      }),
+    ]).then(([delRes, postRes]) => Promise.all([delRes.json(), postRes.json()]))
+      .then(([delData, postData]) => {
+        if (delData.error || postData.error) { setItems(backup); return }
+        window.dispatchEvent(new Event("cart-updated"))
+      }).catch(() => setItems(backup))
   }
 
   async function finishOrder() {
@@ -73,7 +80,7 @@ export default function CartPage() {
     setFinishing(false)
     if (data.error) { alert(data.error); return }
     window.dispatchEvent(new Event("cart-updated"))
-    await loadData()
+    setItems([])
   }
 
   const total = items.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0)
