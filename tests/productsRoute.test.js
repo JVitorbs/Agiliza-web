@@ -286,6 +286,9 @@ describe("Products Route", () => {
       where: {
         active: true
       },
+      include: {
+        empresa: { select: { id: true, name: true } }
+      },
       orderBy: {
         id: "asc"
       }
@@ -308,10 +311,12 @@ describe("Products Route", () => {
 
     const response =
       await POST({
+        headers: { get: () => undefined },
         json: async () => ({
           name: "Produto Banco",
           description: "Descrição banco",
-          price: 25
+          price: 25,
+          empresaId: 1
         })
       })
 
@@ -326,7 +331,8 @@ describe("Products Route", () => {
       data: {
         name: "Produto Banco",
         description: "Descrição banco",
-        price: 25
+        price: 25,
+        empresaId: 1
       }
     })
 
