@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { Calendar, Clock, ArrowLeft, Store, Scissors, AlertTriangle, MapPin } from "lucide-react"
+import { Calendar, Clock, ArrowLeft, Store, Scissors, AlertTriangle, MapPin, Building } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Badge } from "@/app/components/ui/badge"
@@ -121,6 +121,23 @@ export default function ServiceDetailPage() {
               {service.startTime} – {service.endTime}
             </div>
           </div>
+
+          <Separator />
+
+          {service.empresa?.endereco && (
+            <div className="space-y-3 rounded-xl bg-muted/30 p-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Building className="h-4 w-4 text-muted-foreground" />
+                Local do serviço
+              </div>
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <span>
+                  {service.empresa.endereco.street}, {service.empresa.endereco.city} — {service.empresa.endereco.state}, {service.empresa.endereco.zipCode}
+                </span>
+              </div>
+            </div>
+          )}
 
           <Separator />
 

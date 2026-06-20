@@ -334,15 +334,17 @@ describe("Products Route", () => {
     expect(body[0].name).toBe("Produto Prisma")
 
     expect(mockPrisma.produto.findMany).toHaveBeenCalledWith({
-      where: {
-        active: true
-      },
+      where: { active: true },
       include: {
-        empresa: { select: { id: true, name: true } }
+        empresa: {
+          select: {
+            id: true,
+            name: true,
+            endereco: { select: { city: true, state: true, street: true, zipCode: true } },
+          },
+        },
       },
-      orderBy: {
-        id: "asc"
-      }
+      orderBy: { id: "asc" },
     })
 
   })

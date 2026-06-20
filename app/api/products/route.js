@@ -17,7 +17,13 @@ export async function GET() {
         active: true
       },
       include: {
-        empresa: { select: { id: true, name: true } }
+        empresa: {
+          select: {
+            id: true,
+            name: true,
+            endereco: { select: { city: true, state: true, street: true, zipCode: true } },
+          },
+        },
       },
       orderBy: {
         id: "asc"
