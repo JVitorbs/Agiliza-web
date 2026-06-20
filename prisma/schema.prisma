@@ -41,6 +41,8 @@ model Funcionario {
   password   String?
   phone      String
   notes      String?
+  empresaId  Int?
+  empresa    Empresa? @relation(fields: [empresaId], references: [id])
   enderecoId Int
   endereco   Endereco @relation(fields: [enderecoId], references: [id])
   active     Boolean  @default(true)
@@ -48,22 +50,28 @@ model Funcionario {
   updatedAt  DateTime @updatedAt
   createdBy  Int?
   updatedBy  Int?
+
+  @@index([empresaId])
 }
 
 model Empresa {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   name        String
   razaoSocial String
-  cnpj        String   @unique
-  email       String   @unique
+  cnpj        String        @unique
+  email       String        @unique
   phone       String
+  password    String?
   enderecoId  Int
-  endereco    Endereco @relation(fields: [enderecoId], references: [id])
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  createdBy   Int?
-  updatedBy   Int?
+  endereco    Endereco      @relation(fields: [enderecoId], references: [id])
+  funcionarios Funcionario[]
+  produtos     Produto[]
+  servicos     Servico[]
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdBy    Int?
+  updatedBy    Int?
 }
 
 model Endereco {
@@ -147,6 +155,8 @@ model Produto {
   name        String
   description String?
   price       Float
+  empresaId   Int
+  empresa     Empresa  @relation(fields: [empresaId], references: [id])
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -157,6 +167,8 @@ model Produto {
   entregas    Entrega[]
   pagamentos  Pagamento[]
   pedidoItens PedidoItem[]
+
+  @@index([empresaId])
 }
 
 model Entrega {
@@ -183,6 +195,8 @@ model Servico {
   name          String
   description   String?
   price         Float
+  empresaId     Int
+  empresa       Empresa  @relation(fields: [empresaId], references: [id])
   availableDays String[]
   startTime     String
   endTime       String
@@ -196,6 +210,8 @@ model Servico {
   agendamentos  Agendamento[]
   pagamentos    Pagamento[]
   pedidoItens   PedidoItem[]
+
+  @@index([empresaId])
 }
 
 model Agendamento {
