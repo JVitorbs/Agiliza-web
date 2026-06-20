@@ -4,6 +4,7 @@ import {
   services
 } from "../../data/store.js"
 import { prisma } from "../../lib/prisma.js"
+import { handlePrismaError } from "../../lib/error-handler.js"
 
 const useMemoryStore =
   process.env.NODE_ENV === "test"
@@ -159,6 +160,8 @@ export async function POST(req) {
 
     }
 
+    const userId = Number(req.headers?.get?.("x-user-id"))
+
     const service =
       await prisma.servico.findUnique({
         where: {
@@ -217,6 +220,7 @@ export async function POST(req) {
       await prisma.agendamento.create({
         data: {
           servicoId: Number(serviceId),
+          usuarioId: userId || null,
           date: body.date,
           time: body.time,
           scheduledAt:
@@ -245,18 +249,7 @@ export async function POST(req) {
     )
 
   } catch (error) {
-
-    const status = error?.status ?? 400
-
-    return Response.json(
-      {
-        error: error.message
-      },
-      {
-        status
-      }
-    )
-
+    return handlePrismaError(error)
   }
 
 }
