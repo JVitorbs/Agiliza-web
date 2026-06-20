@@ -6,7 +6,7 @@ export class ProductService {
       throw new Error("Nome obrigatório")
     }
 
-    if (product.price === undefined || product.price === null) {
+    if (product.price === undefined || product.price === null || isNaN(Number(product.price))) {
       throw new Error("Preço obrigatório")
     }
 
