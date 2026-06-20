@@ -6,7 +6,7 @@ const mockPrisma = vi.hoisted(() => ({
 }))
 
 describe("Cart Route — Prisma path", () => {
-  let GET, POST, DELETE
+  let GET, POST, PATCH, DELETE
 
   function headers(overrides = {}) {
     return {
@@ -43,6 +43,7 @@ describe("Cart Route — Prisma path", () => {
     const mod = await import("../app/api/cart/route.js")
     GET = mod.GET
     POST = mod.POST
+    PATCH = mod.PATCH
     DELETE = mod.DELETE
   })
 
@@ -228,5 +229,79 @@ describe("Cart Route — Prisma path", () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(true)
+  })
+
+  // ─── PATCH ────────────────────────────────────────────────────────────────
+
+  it("PATCH retorna 403 para funcionario", async () => {
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers({ "x-user-role": "funcionario" }),
+      body: JSON.stringify({ id: 1, quantity: 3 }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(403)
+  })
+
+  it("PATCH retorna 400 sem id ou quantity", async () => {
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({}),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+  })
+
+  it("PATCH retorna 400 para quantity menor que 1", async () => {
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ id: 1, quantity: 0 }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+  })
+
+  it("PATCH retorna 404 para item inexistente", async () => {
+    mockPrisma.itens.findUnique.mockResolvedValue(null)
+
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ id: 999, quantity: 3 }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(404)
+  })
+
+  it("PATCH retorna 403 para acesso negado", async () => {
+    mockPrisma.itens.findUnique.mockResolvedValue({ id: 1, carrinhoId: 5 })
+    mockPrisma.carrinho.findFirst.mockResolvedValue(null)
+
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ id: 1, quantity: 3 }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(403)
+  })
+
+  it("PATCH atualiza quantidade com sucesso", async () => {
+    mockPrisma.itens.findUnique.mockResolvedValue({ id: 1, carrinhoId: 1 })
+    mockPrisma.carrinho.findFirst.mockResolvedValue({ id: 1, usuarioId: 1 })
+    mockPrisma.itens.update.mockResolvedValue({})
+
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ id: 1, quantity: 5 }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(200)
+    expect(mockPrisma.itens.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 1 }, data: { quantity: 5 } })
+    )
   })
 })

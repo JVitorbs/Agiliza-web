@@ -51,26 +51,14 @@ export default function CartPage() {
     const newQty = item.quantity + delta
     if (newQty < 1) return removeItem(id)
     setItems(prev => prev.map(i => i.id === id ? { ...i, quantity: newQty } : i))
-    Promise.all([
-      fetch("/api/cart", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      }),
-      fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          produtoId: item.produtoId,
-          servicoId: item.servicoId,
-          quantity: newQty,
-        }),
-      }),
-    ]).then(([delRes, postRes]) => Promise.all([delRes.json(), postRes.json()]))
-      .then(([delData, postData]) => {
-        if (delData.error || postData.error) { setItems(backup); return }
-        window.dispatchEvent(new Event("cart-updated"))
-      }).catch(() => setItems(backup))
+    fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, quantity: newQty }),
+    }).then(r => r.json()).then(data => {
+      if (data.error) { setItems(backup); return }
+      window.dispatchEvent(new Event("cart-updated"))
+    }).catch(() => setItems(backup))
   }
 
   async function finishOrder() {

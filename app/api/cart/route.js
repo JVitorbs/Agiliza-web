@@ -106,6 +106,32 @@ export async function POST(req) {
   }
 }
 
+export async function PATCH(req) {
+  try {
+    const blocked = checkRole(req)
+    if (blocked) return blocked
+
+    const userId = Number(req.headers.get("x-user-id"))
+    const { id, quantity } = await req.json()
+
+    if (!id || quantity == null || quantity < 1) {
+      return Response.json({ error: "Parâmetros inválidos" }, { status: 400 })
+    }
+
+    const item = await prisma.itens.findUnique({ where: { id } })
+    if (!item) return Response.json({ error: "Item não encontrado" }, { status: 404 })
+
+    const carrinho = await prisma.carrinho.findFirst({ where: { id: item.carrinhoId, usuarioId: userId } })
+    if (!carrinho) return Response.json({ error: "Acesso negado" }, { status: 403 })
+
+    await prisma.itens.update({ where: { id }, data: { quantity } })
+
+    return Response.json({ success: true })
+  } catch (error) {
+    return handlePrismaError(error)
+  }
+}
+
 export async function DELETE(req) {
   try {
     if (useMemoryStore) {
