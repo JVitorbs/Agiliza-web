@@ -1,181 +1,91 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Calendar, Clock, Scissors, Store } from "lucide-react"
+import { Input } from "@/app/components/ui/input"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card"
+import { Badge } from "@/app/components/ui/badge"
+
+const WEEK_DAYS_LABEL = {
+  segunda: "Seg", terca: "Ter", quarta: "Qua",
+  quinta: "Qui", sexta: "Sex", sabado: "Sáb", domingo: "Dom",
+}
 
 export default function ClienteServicosPage() {
-
-  const router = useRouter()
-
   const [services, setServices] = useState([])
-  const [selectedService, setSelectedService] = useState(null)
-  const [date, setDate] = useState("")
-  const [time, setTime] = useState("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-
-    loadServices()
-
+    fetch("/api/services")
+      .then(r => r.json())
+      .then(d => { setServices(Array.isArray(d) ? d : []); setLoading(false) })
   }, [])
 
-  async function loadServices() {
-
-    const response = await fetch("/api/services")
-    const data = await response.json()
-
-    setServices(
-      Array.isArray(data) ? data : []
-    )
-
-  }
-
-  async function schedule() {
-
-    if (!selectedService) {
-      alert("Selecione um serviço")
-      return
-    }
-
-    if (!date) {
-      alert("Selecione uma data")
-      return
-    }
-
-    if (!time) {
-      alert("Selecione um horário")
-      return
-    }
-
-    const response = await fetch(
-      "/api/appointments",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          serviceId: selectedService.id,
-          serviceName: selectedService.name,
-          date,
-          time
-        })
-      }
-    )
-
-    const data = await response.json()
-
-    if (data.error) {
-      alert(data.error)
-      return
-    }
-
-    alert("Agendamento realizado")
-
-    router.push("/cliente/agendamentos")
-
-  }
-
   return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Serviços</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {services.length} serviço{services.length !== 1 ? "s" : ""} disponível{services.length !== 1 ? "is" : ""}
+        </p>
+      </div>
 
-    <main style={{ padding: 20 }}>
+      {loading && (
+        <div className="flex justify-center py-24">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      )}
 
-      <h1>
-        Cliente - Serviços
-      </h1>
+      {!loading && services.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <Calendar className="h-12 w-12 text-muted-foreground/50 mb-4" />
+          <p className="text-muted-foreground">Nenhum serviço disponível.</p>
+        </div>
+      )}
 
-      {
-        services.length === 0 && (
-          <p>
-            Nenhum serviço cadastrado.
-          </p>
-        )
-      }
-
-      {
-        services.map(service => (
-
-          <div
-            key={service.id}
-            style={{
-              border: "1px solid #ccc",
-              padding: 10,
-              marginBottom: 10
-            }}
-          >
-
-            <h3>
-              {service.name}
-            </h3>
-
-            <p>
-              {service.description}
-            </p>
-
-            <p>
-              R$ {Number(service.price).toFixed(2)}
-            </p>
-
-            <p>
-              Dias disponíveis: {service.availableDays.join(", ")}
-            </p>
-
-            <p>
-              Horário: {service.startTime} até {service.endTime}
-            </p>
-
-            <button onClick={() => setSelectedService(service)}>
-              Selecionar serviço
-            </button>
-
-          </div>
-
-        ))
-      }
-
-      {
-        selectedService && (
-
-          <section
-            style={{
-              border: "1px solid #999",
-              padding: 15,
-              marginTop: 20
-            }}
-          >
-
-            <h2>
-              Agendar: {selectedService.name}
-            </h2>
-
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-            />
-
-            <br />
-            <br />
-
-            <input
-              type="time"
-              value={time}
-              onChange={e => setTime(e.target.value)}
-            />
-
-            <br />
-            <br />
-
-            <button onClick={schedule}>
-              Confirmar Agendamento
-            </button>
-
-          </section>
-
-        )
-      }
-
-    </main>
-
+      {!loading && (
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {services.map(service => (
+            <Link key={service.id} href={`/cliente/servicos/${service.id}`}>
+              <Card className="group flex flex-col overflow-hidden transition-all hover:shadow-md cursor-pointer">
+                <div className="flex h-32 items-center justify-center bg-muted/50">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-700/20 text-2xl">
+                    <Scissors className="h-7 w-7 text-primary" />
+                  </div>
+                </div>
+                <CardHeader className="pb-3">
+                  <Badge variant="outline" className="w-fit mb-2 text-xs">Serviço</Badge>
+                  <CardTitle className="text-base">{service.name}</CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    {service.description || "Sem descrição."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-lg font-bold">R$ {Number(service.price).toFixed(2)}</p>
+                  {service.empresa && (
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Store className="h-3 w-3" />
+                      {service.empresa.name}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-1.5">
+                    {(service.availableDays ?? []).map(d => (
+                      <Badge key={d} variant="secondary" className="text-[10px] px-1.5 py-0">
+                        {WEEK_DAYS_LABEL[d] ?? d}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {service.startTime} – {service.endTime}
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   )
-
 }
