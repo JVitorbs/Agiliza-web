@@ -48,7 +48,7 @@ export default function ClienteServicosPage() {
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {services.map(service => (
             <Link key={service.id} href={`/cliente/servicos/${service.id}`}>
-              <Card className="group flex flex-col overflow-hidden transition-all hover:shadow-md cursor-pointer">
+              <Card className="group flex h-full flex-col overflow-hidden transition-all hover:shadow-md cursor-pointer">
                 <div className="flex h-32 items-center justify-center bg-muted/50">
                   <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/20 to-indigo-700/20 text-2xl">
                     <Scissors className="h-7 w-7 text-primary" />

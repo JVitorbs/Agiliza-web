@@ -10,42 +10,51 @@ import { Button } from "./ui/button"
 import { Popover, PopoverTrigger, PopoverContent } from "./ui/popover"
 import { Separator } from "./ui/separator"
 
+function useLocalStorageUser() {
+  const [user, setUser] = useState(null)
+  useEffect(() => {
+    queueMicrotask(() => {
+      const stored = localStorage.getItem("agiliza_user")
+      if (stored) setUser(JSON.parse(stored))
+    })
+    function handler() {
+      const s = localStorage.getItem("agiliza_user")
+      setUser(s ? JSON.parse(s) : null)
+    }
+    window.addEventListener("storage", handler)
+    window.addEventListener("user-changed", handler)
+    return () => {
+      window.removeEventListener("storage", handler)
+      window.removeEventListener("user-changed", handler)
+    }
+  }, [setUser])
+  return [user, setUser]
+}
+
 export default function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useLocalStorageUser()
   const [cartItems, setCartItems] = useState([])
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
-    const stored = localStorage.getItem("agiliza_user")
-    setUser(stored ? JSON.parse(stored) : null)
-  }, [pathname])
-
-  function isCliente() {
-    return user?.role === "cliente"
-  }
-
-  function fetchCart() {
-    if (!isCliente()) { setCartItems([]); return }
+    if (user?.role !== "cliente") return
     fetch("/api/cart")
       .then(r => r.ok ? r.json() : [])
       .then(d => setCartItems(Array.isArray(d) ? d : d.itens ?? []))
       .catch(() => {})
-  }
-
-  useEffect(fetchCart, [user, pathname])
+  }, [user, pathname])
 
   useEffect(() => {
     function handler() {
       const stored = localStorage.getItem("agiliza_user")
       if (!stored) return
       setUser(JSON.parse(stored))
-      fetchCart()
     }
     window.addEventListener("cart-updated", handler)
     return () => window.removeEventListener("cart-updated", handler)
-  }, [])
+  }, [setUser])
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" })
@@ -67,7 +76,9 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo />
+        <div className="dark:bg-transparent bg-zinc-800 rounded-lg p-1 leading-none">
+          <Logo />
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1 ml-8">
@@ -112,7 +123,7 @@ export default function Navbar() {
 
           {user ? (
             <>
-              {isCliente() && (
+              {user?.role === "cliente" && (
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="icon" className="relative">
@@ -179,7 +190,7 @@ export default function Navbar() {
                     <div className="px-2 py-1.5 text-sm font-medium truncate">{user.name ?? user.email}</div>
                     <div className="px-2 pb-1.5 text-xs text-muted-foreground truncate">{user.email}</div>
                     <Separator className="my-1" />
-                    {isCliente() ? (
+                    {user?.role === "cliente" ? (
                       <>
                         <Link href="/cliente/pedidos" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
                           <Package className="h-4 w-4 text-muted-foreground" />
@@ -229,7 +240,7 @@ export default function Navbar() {
 
         {/* Mobile menu button */}
         <div className="flex md:hidden items-center gap-2">
-          {isCliente() && (
+          {user?.role === "cliente" && (
             <Link href="/cliente/carrinho">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-4 w-4" />
@@ -283,7 +294,7 @@ export default function Navbar() {
                 <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   {user.name ?? user.email}
                 </div>
-                {isCliente() ? (
+                {user?.role === "cliente" ? (
                   <>
                     <Link href="/cliente/pedidos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/cliente/pedidos")}`}>
                       <Package className="inline h-4 w-4 mr-2" />Pedidos

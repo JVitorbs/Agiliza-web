@@ -27,15 +27,11 @@ export default function ClienteProdutosPage() {
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(null)
 
-  useEffect(() => { loadProducts() }, [])
-
-  async function loadProducts() {
-    setLoading(true)
-    const res = await fetch("/api/products")
-    const data = await res.json()
-    setProducts(Array.isArray(data) ? data : [])
-    setLoading(false)
-  }
+  useEffect(() => {
+    fetch("/api/products")
+      .then(r => r.json())
+      .then(d => { setProducts(Array.isArray(d) ? d : []); setLoading(false) })
+  }, [])
 
   async function addToCart(e, product) {
     e.preventDefault()
@@ -96,7 +92,7 @@ export default function ClienteProdutosPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map(product => (
             <Link key={product.id} href={`/cliente/produtos/${product.id}`}>
-              <Card className="group flex flex-col overflow-hidden transition-all hover:shadow-md cursor-pointer">
+              <Card className="group flex h-full flex-col overflow-hidden transition-all hover:shadow-md cursor-pointer">
                 <div className="flex h-40 items-center justify-center bg-muted/50 text-5xl">
                   {getIcon(product.name)}
                 </div>

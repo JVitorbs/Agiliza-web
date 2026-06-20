@@ -20,7 +20,7 @@ function TabsList({ className, children, ...props }) {
     <div
       role="tablist"
       className={cn(
-        "inline-flex h-10 items-center justify-center rounded-lg bg-zinc-800/50 p-1 text-zinc-400",
+        "inline-flex h-10 items-center justify-center rounded-lg bg-muted/50 p-1 text-muted-foreground",
         className
       )}
       {...props}
@@ -43,8 +43,8 @@ function TabsTrigger({ value, className, children, ...props }) {
         "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-all",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1",
         isActive
-          ? "bg-zinc-900 text-zinc-100 shadow-sm"
-          : "hover:text-zinc-200",
+          ? "bg-background text-foreground shadow-sm"
+          : "hover:text-foreground",
         className
       )}
       {...props}
