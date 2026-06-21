@@ -115,6 +115,16 @@ describe("Button", () => {
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
+  it("renders as Slot when asChild is true", () => {
+    const { container } = render(
+      <Button asChild>
+        <a href="/test">Link Button</a>
+      </Button>
+    )
+    expect(container.firstChild.tagName).toBe("A")
+    expect(container.firstChild).toHaveClass("bg-indigo-500")
+  })
+
   it("accepts additional className", () => {
     const { container } = render(<Button className="extra-btn">Custom</Button>)
     expect(container.firstChild).toHaveClass("extra-btn")

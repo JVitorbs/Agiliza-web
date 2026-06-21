@@ -95,6 +95,30 @@ describe("Cart Route — Prisma path", () => {
     expect(body[0].quantity).toBe(2)
   })
 
+  it("GET usa servico name/price quando produto é null", async () => {
+    mockPrisma.carrinho.findFirst.mockResolvedValue(
+      mockCart([mockItem({ produtoId: null, servicoId: 5, produto: null, servico: { id: 5, name: "Serviço Teste", price: 99.9 } })])
+    )
+
+    const req = new Request("http://localhost", { headers: headers() })
+    const res = await GET(req)
+    const body = await res.json()
+    expect(body[0].name).toBe("Serviço Teste")
+    expect(body[0].price).toBe(99.9)
+  })
+
+  it("GET usa fallback 'Item' quando produto e servico são null", async () => {
+    mockPrisma.carrinho.findFirst.mockResolvedValue(
+      mockCart([mockItem({ produtoId: null, servicoId: null, produto: null, servico: null })])
+    )
+
+    const req = new Request("http://localhost", { headers: headers() })
+    const res = await GET(req)
+    const body = await res.json()
+    expect(body[0].name).toBe("Item")
+    expect(body[0].price).toBe(0)
+  })
+
   it("GET trata erro Prisma", async () => {
     mockPrisma.carrinho.findFirst.mockRejectedValue(new Error("DB error"))
 
@@ -303,5 +327,35 @@ describe("Cart Route — Prisma path", () => {
     expect(mockPrisma.itens.update).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: 1 }, data: { quantity: 5 } })
     )
+  })
+
+  it("PATCH trata erro no catch", async () => {
+    mockPrisma.itens.findUnique.mockRejectedValue(new Error("DB error"))
+
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ id: 1, quantity: 5 }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toBe("DB error")
+  })
+
+  it("POST incrementa servico existente com servicoId", async () => {
+    mockPrisma.carrinho.findFirst
+      .mockResolvedValueOnce(mockCart([mockItem({ id: 30, servicoId: 7, produtoId: null, quantity: 1, servico: { id: 7, name: "Srv", price: 50 } })]))
+      .mockResolvedValueOnce(mockCart([mockItem({ id: 30, servicoId: 7, produtoId: null, quantity: 2, servico: { id: 7, name: "Srv", price: 50 } })]))
+    mockPrisma.itens.update.mockResolvedValue({})
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ servicoId: 7, quantity: 1 }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(201)
+    expect(mockPrisma.itens.update).toHaveBeenCalled()
   })
 })

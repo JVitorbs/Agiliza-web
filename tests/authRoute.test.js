@@ -201,4 +201,24 @@ describe("Auth API", () => {
 
     expect(response.status).toBe(500)
   })
+
+  it("deve usar fallback '' quando principal.password é null", async () => {
+    mockPrisma.funcionario.findUnique.mockResolvedValue({
+      id: 1, name: "Sem Senha", email: "sem@senha.com", active: true,
+    })
+    mockPrisma.usuario.findUnique.mockResolvedValue(null)
+    mockBcrypt.default.compare.mockResolvedValue(false)
+
+    const { POST } = await import("../app/api/auth/login/route.js")
+
+    const response = await POST(
+      new Request("http://localhost/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: "sem@senha.com", password: "qualquer" }),
+      })
+    )
+
+    expect(response.status).toBe(401)
+    expect(mockBcrypt.default.compare).toHaveBeenCalledWith("qualquer", "")
+  })
 })
