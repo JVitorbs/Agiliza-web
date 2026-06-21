@@ -53,22 +53,69 @@ Isso criará uma cópia local do repositório em sua máquina.
 
 ## Estrutura do Projeto
 
-> *Esta seção pode variar conforme a organização do repositório de cada grupo.*
-
 ```
 Agiliza-web/
-├── LICENSE
-├── README.md
-├── .gitignore
-└── docs/
-   └── historias_usuario.md
+├── app/
+│   ├── api/              # API routes (backend)
+│   │   ├── auth/         #   login, logout, register, me
+│   │   ├── appointments/ #   agendamentos (GET, POST)
+│   │   ├── cart/         #   carrinho (GET, POST, PATCH, DELETE)
+│   │   ├── cliente/      #   perfil (PATCH)
+│   │   ├── orders/       #   pedidos (GET, POST)
+│   │   ├── products/     #   produtos (GET, POST, PUT, DELETE)
+│   │   └── services/     #   serviços (GET, POST, PUT, DELETE)
+│   ├── cliente/          # Páginas do cliente
+│   │   ├── agendamentos/
+│   │   ├── carrinho/
+│   │   ├── configuracoes/
+│   │   ├── pedidos/
+│   │   ├── produtos/
+│   │   └── servicos/
+│   ├── components/       # Componentes React
+│   │   ├── Navbar.jsx
+│   │   ├── Footer.jsx
+│   │   ├── Logo.jsx
+│   │   ├── ThemeToggle.jsx
+│   │   └── ui/           #   shadcn/ui (button, card, badge, input, dialog, etc.)
+│   ├── data/             # Store in-memory para testes
+│   ├── funcionario/      # Páginas do funcionário
+│   │   ├── produtos/
+│   │   └── servicos/
+│   ├── lib/              # Utilitários (prisma, validation, masks, utils, useAlert)
+│   ├── services/         # Camada de serviço (validações e regras de negócio)
+│   ├── globals.css       # Estilos globais + tema Tailwind
+│   ├── layout.js         # Layout raiz com Navbar + Footer
+│   ├── page.js           # Landing page
+│   ├── appointments/
+│   ├── cart/
+│   ├── login/
+│   ├── orders/
+│   ├── products/
+│   ├── register/
+│   └── services/
+├── docs/                 # Documentação do projeto
+├── generated/prisma/     # Cliente Prisma gerado (auto-generated)
+├── prisma/
+│   ├── migrations/       # Histórico de migrations
+│   ├── schema.prisma     # Schema do banco de dados
+│   └── seed.ts           # Seed de dados
+├── public/img/           # Imagens estáticas (logotipos)
+├── tests/                # Testes automatizados (Vitest)
+├── .github/workflows/    # CI (GitHub Actions)
+├── proxy.js              # Middleware de autenticação (Edge Runtime)
+├── next.config.mjs
+├── vitest.config.js
+├── postcss.config.mjs
+├── eslint.config.mjs
+└── package.json
 ```
 
-- LICENSE: termos da licença do projeto (MIT).
-- README.md: este arquivo de apresentação.
-- X: descrição do diretório X.
-- Y: descrição do diretório Y.
-- Z: descrição do diretório Z.
+- `app/`: aplicação Next.js (App Router). `app/api/` contém as rotas de backend; os demais diretórios são páginas do frontend.
+- `prisma/`: schema do banco PostgreSQL + migrations + seed.
+- `generated/prisma/`: cliente Prisma gerado automaticamente (`npx prisma generate`).
+- `tests/`: testes unitários com Vitest (21 arquivos, cobrindo rotas, serviços e componentes).
+- `proxy.js`: middleware de autenticação que roda no Edge Runtime do Next.js, verifica JWT e protege rotas.
+- `docs/`: documentação do projeto (arquitetura, tecnologias, testes, histórias de usuário).
 
 ## Licença
 
