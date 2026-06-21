@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ShoppingCart, Package, Calendar, Store, LogOut, User, Menu, X, Settings, UserCircle } from "lucide-react"
+import { ShoppingCart, Package, Calendar, Store, LogOut, User, Menu, X, Settings, UserCircle, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import Logo from "./Logo"
 import ThemeToggle from "./ThemeToggle"
@@ -67,7 +67,8 @@ export default function Navbar() {
   const cartCount = cartItems.reduce((s, i) => s + (i.quantity ?? 1), 0)
   const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0)
 
-  const isEmployee = user?.role === "funcionario" || user?.role === "admin"
+  const isEmployee = user?.role === "funcionario" || user?.role === "admin" || user?.role === "empresa"
+  const isEmpresa = user?.role === "empresa"
   const isActive = (href) =>
     pathname === href || pathname.startsWith(href + "/")
       ? "text-foreground font-medium"
@@ -104,13 +105,25 @@ export default function Navbar() {
           )}
           {isEmployee && (
             <>
+              {isEmpresa && (
+                <>
+                  <Link href="/empresa/dashboard" className={`px-3 py-2 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
+                    <Store className="inline h-4 w-4 mr-1.5 -mt-0.5" />
+                    Dashboard
+                  </Link>
+                  <Link href="/empresa/funcionarios" className={`px-3 py-2 text-sm rounded-lg ${isActive("/empresa/funcionarios")}`}>
+                    <Users className="inline h-4 w-4 mr-1.5 -mt-0.5" />
+                    Funcionários
+                  </Link>
+                </>
+              )}
               <Link href="/funcionario/produtos" className={`px-3 py-2 text-sm rounded-lg ${isActive("/funcionario/produtos")}`}>
                 <Package className="inline h-4 w-4 mr-1.5 -mt-0.5" />
-                Produtos
+                {isEmpresa ? "Meus Produtos" : "Gerenciar Produtos"}
               </Link>
               <Link href="/funcionario/servicos" className={`px-3 py-2 text-sm rounded-lg ${isActive("/funcionario/servicos")}`}>
                 <Calendar className="inline h-4 w-4 mr-1.5 -mt-0.5" />
-                Serviços
+                {isEmpresa ? "Meus Serviços" : "Gerenciar Serviços"}
               </Link>
             </>
           )}
@@ -201,6 +214,25 @@ export default function Navbar() {
                           Agendamentos
                         </Link>
                       </>
+                    ) : isEmpresa ? (
+                      <>
+                        <Link href="/empresa/dashboard" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
+                          <Store className="h-4 w-4 text-muted-foreground" />
+                          Dashboard
+                        </Link>
+                        <Link href="/empresa/funcionarios" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          Funcionários
+                        </Link>
+                        <Link href="/funcionario/produtos" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
+                          <Package className="h-4 w-4 text-muted-foreground" />
+                          Meus produtos
+                        </Link>
+                        <Link href="/funcionario/servicos" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
+                          <Calendar className="h-4 w-4 text-muted-foreground" />
+                          Meus serviços
+                        </Link>
+                      </>
                     ) : (
                       <>
                         <Link href="/funcionario/produtos" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
@@ -281,11 +313,21 @@ export default function Navbar() {
             )}
             {isEmployee && (
               <>
+                {isEmpresa && (
+                  <>
+                    <Link href="/empresa/dashboard" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
+                      <Store className="inline h-4 w-4 mr-2" />Dashboard
+                    </Link>
+                    <Link href="/empresa/funcionarios" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/funcionarios")}`}>
+                      <Users className="inline h-4 w-4 mr-2" />Funcionários
+                    </Link>
+                  </>
+                )}
                 <Link href="/funcionario/produtos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/funcionario/produtos")}`}>
-                  <Package className="inline h-4 w-4 mr-2" />Produtos
+                  <Package className="inline h-4 w-4 mr-2" />{isEmpresa ? "Meus Produtos" : "Gerenciar Produtos"}
                 </Link>
                 <Link href="/funcionario/servicos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/funcionario/servicos")}`}>
-                  <Calendar className="inline h-4 w-4 mr-2" />Serviços
+                  <Calendar className="inline h-4 w-4 mr-2" />{isEmpresa ? "Meus Serviços" : "Gerenciar Serviços"}
                 </Link>
               </>
             )}
@@ -301,6 +343,21 @@ export default function Navbar() {
                     </Link>
                     <Link href="/cliente/agendamentos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/cliente/agendamentos")}`}>
                       <Calendar className="inline h-4 w-4 mr-2" />Agendamentos
+                    </Link>
+                  </>
+                ) : isEmpresa ? (
+                  <>
+                    <Link href="/empresa/dashboard" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
+                      <Store className="inline h-4 w-4 mr-2" />Dashboard
+                    </Link>
+                    <Link href="/empresa/funcionarios" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/funcionarios")}`}>
+                      <Users className="inline h-4 w-4 mr-2" />Funcionários
+                    </Link>
+                    <Link href="/funcionario/produtos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/funcionario/produtos")}`}>
+                      <Package className="inline h-4 w-4 mr-2" />Meus produtos
+                    </Link>
+                    <Link href="/funcionario/servicos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/funcionario/servicos")}`}>
+                      <Calendar className="inline h-4 w-4 mr-2" />Meus serviços
                     </Link>
                   </>
                 ) : (

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mockPrisma = vi.hoisted(() => ({
   funcionario: { findUnique: vi.fn() },
+  empresa: { findUnique: vi.fn() },
   usuario: { findUnique: vi.fn() },
 }))
 

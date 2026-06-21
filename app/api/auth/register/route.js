@@ -27,8 +27,16 @@ async function createCliente(body) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
   }
 
+  const emailExists = await prisma.usuario.findUnique({ where: { email } })
+    || await prisma.funcionario.findUnique({ where: { email } })
+    || await prisma.empresa.findUnique({ where: { email } })
+
+  if (emailExists) {
+    return Response.json({ error: "Email já cadastrado" }, { status: 409 })
+  }
+
   const existing = await prisma.usuario.findFirst({
-    where: { OR: [{ email }, { cpf }] },
+    where: { cpf },
   })
 
   if (existing) {
@@ -58,18 +66,34 @@ async function createCliente(body) {
 }
 
 async function createFuncionario(body) {
-  const { name, email, password, phone, cpf, empresaId } = body
+  let { name, email, password, phone, cpf, empresaId, empresaEmail } = body
 
   if (!name || !email || !password || !phone || !cpf) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
   }
 
+  const emailExists = await prisma.usuario.findUnique({ where: { email } })
+    || await prisma.funcionario.findUnique({ where: { email } })
+    || await prisma.empresa.findUnique({ where: { email } })
+
+  if (emailExists) {
+    return Response.json({ error: "Email já cadastrado" }, { status: 409 })
+  }
+
   const existing = await prisma.funcionario.findFirst({
-    where: { OR: [{ email }, { cpf }] },
+    where: { cpf },
   })
 
   if (existing) {
-    return Response.json({ error: "Email ou CPF já cadastrado" }, { status: 409 })
+    return Response.json({ error: "CPF já cadastrado" }, { status: 409 })
+  }
+
+  if (empresaEmail && !empresaId) {
+    const empresa = await prisma.empresa.findUnique({ where: { email: empresaEmail } })
+    if (!empresa) {
+      return Response.json({ error: "Empresa não encontrada com esse email" }, { status: 404 })
+    }
+    empresaId = empresa.id
   }
 
   if (empresaId) {
@@ -108,12 +132,20 @@ async function createEmpresa(body) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
   }
 
+  const emailExists = await prisma.usuario.findUnique({ where: { email } })
+    || await prisma.funcionario.findUnique({ where: { email } })
+    || await prisma.empresa.findUnique({ where: { email } })
+
+  if (emailExists) {
+    return Response.json({ error: "Email já cadastrado" }, { status: 409 })
+  }
+
   const existing = await prisma.empresa.findFirst({
-    where: { OR: [{ email }, { cnpj }] },
+    where: { cnpj },
   })
 
   if (existing) {
-    return Response.json({ error: "Email ou CNPJ já cadastrado" }, { status: 409 })
+    return Response.json({ error: "CNPJ já cadastrado" }, { status: 409 })
   }
 
   const hashedPassword = await bcrypt.hash(password, 10)

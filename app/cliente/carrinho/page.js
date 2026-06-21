@@ -6,15 +6,13 @@ import { ShoppingCart, Trash2, ArrowLeft, Minus, Plus, MapPin, AlertTriangle } f
 import { Button } from "@/app/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { Separator } from "@/app/components/ui/separator"
-import { Alert, AlertDescription } from "@/app/components/ui/alert"
-import { useAlert } from "@/app/lib/useAlert"
+import { toast } from "sonner"
 
 export default function CartPage() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [finishing, setFinishing] = useState(false)
   const [address, setAddress] = useState(null)
-  const { alert, showAlert, dismissAlert } = useAlert()
 
   async function loadData() {
     setLoading(true)
@@ -42,7 +40,7 @@ export default function CartPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     }).then(r => r.json()).then(data => {
-      if (data.error) { setItems(backup); showAlert(data.error); return }
+      if (data.error) { setItems(backup); toast.error(data.error); return }
       window.dispatchEvent(new Event("cart-updated"))
     }).catch(() => setItems(backup))
   }
@@ -69,7 +67,7 @@ export default function CartPage() {
     const res = await fetch("/api/orders", { method: "POST" })
     const data = await res.json()
     setFinishing(false)
-    if (data.error) { showAlert(data.error); return }
+    if (data.error) { toast.error(data.error); return }
     window.dispatchEvent(new Event("cart-updated"))
     setItems([])
   }
@@ -80,12 +78,6 @@ export default function CartPage() {
 
   return (
     <div className="space-y-8">
-      {alert && (
-        <Alert variant={alert.variant} className="flex items-center justify-between">
-          <AlertDescription>{alert.message}</AlertDescription>
-          <button onClick={dismissAlert} className="ml-4 text-sm font-medium hover:underline shrink-0">Fechar</button>
-        </Alert>
-      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Carrinho</h1>

@@ -64,7 +64,7 @@ export async function proxy(request) {
     const { payload } = await jwtVerify(token, JWT_SECRET)
 
     if (isEmployeeRoute) {
-      const isEmployee = payload.role === "funcionario" || payload.role === "admin"
+      const isEmployee = payload.role === "funcionario" || payload.role === "admin" || payload.role === "empresa"
       if (!isEmployee) {
         if (pathname.startsWith("/api/")) {
           return Response.json({ error: "Acesso negado" }, { status: 403 })
@@ -94,10 +94,12 @@ export const config = {
   matcher: [
     "/cliente/:path*",
     "/funcionario/:path*",
+    "/empresa/:path*",
     "/api/appointments/:path*",
     "/api/cart/:path*",
     "/api/orders/:path*",
     "/api/cliente/:path*",
+    "/api/empresa/:path*",
     "/api/services/:path*",
     "/api/products/:path*",
   ],

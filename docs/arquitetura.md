@@ -23,6 +23,7 @@ Roda no Edge Runtime do Next.js para todas as requisições a rotas protegidas (
 - Verificar JWT do cookie `agiliza_token` usando `jose`
 - Rotas públicas: GET em `/api/products` e `/api/services`, páginas `/cliente/produtos` e `/cliente/servicos`
 - Rotas de funcionário: `/funcionario/*`, `/api/services` (mutação), `/api/products` (mutação) — exigem role `funcionario` ou `admin`
+- Rotas de empresa: `/api/empresa/*`, `/empresa/*` — exigem role `empresa`, `funcionario` ou `admin`
 - Rotas autenticadas: `/api/appointments`, `/api/cart`, `/api/orders`, `/api/cliente`, `/cliente/carrinho`, `/cliente/pedidos`, `/cliente/agendamentos` — exigem qualquer usuário logado
 - Injeta headers `x-user-id`, `x-user-role`, `x-user-email` na request quando o token é válido
 
@@ -83,6 +84,8 @@ Páginas React com Server Components (padrão) e Client Components (quando neces
 **Páginas autenticadas (cliente)**: Carrinho (`/cliente/carrinho`), pedidos (`/cliente/pedidos`), agendamentos (`/cliente/agendamentos`), configurações (`/cliente/configuracoes`)
 
 **Páginas de funcionário**: Gerenciar produtos (`/funcionario/produtos`), gerenciar serviços (`/funcionario/servicos`)
+
+**Páginas de empresa**: Dashboard (`/empresa/dashboard`) com cards métricos e gráficos, gerenciar funcionários (`/empresa/funcionarios`)
 
 ## Fluxo de Autenticação
 
@@ -198,7 +201,8 @@ O cookie é httpOnly (não acessível por JavaScript). O frontend não consegue 
 - Componentes compartilhados em `app/components/` (Navbar, Footer, Logo, ThemeToggle)
 - Componentes shadcn/ui em `app/components/ui/` — importar com caminho relativo ou `@/app/components/ui/`
 - Utilitário `cn()` em `app/lib/utils.js` para mesclar classes (`clsx` + `tailwind-merge`)
-- Hook `useAlert()` em `app/lib/useAlert.js` para gerenciar estado de alertas nas páginas
+- Notificações toast via `sonner` (`<Toaster />` no layout raiz, `toast.error()`/`toast.success()` nas páginas) — substitui o antigo hook `useAlert.js` que foi removido
+- Gráficos do dashboard com `recharts` + componente `Chart` (shadcn/ui) em `app/components/ui/chart.jsx`
 
 ## Aliases de Import
 

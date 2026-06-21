@@ -18,6 +18,7 @@ Next.js está configurado com **App Router** (diretório `app/`). Não usar Page
 | [shadcn/ui](https://ui.shadcn.com/) | — | Componentes baseados em Radix UI, copiados manualmente para `app/components/ui/` |
 | [Radix UI](https://www.radix-ui.com/) | — | Primitivos de acessibilidade (Dialog, Popover, etc.) |
 | [Lucide React](https://lucide.dev/) | — | Ícones |
+| [Recharts](https://recharts.org/) | — | Gráficos do dashboard |
 | [class-variance-authority](https://cva.style/) | — | Variantes de componentes (cva) |
 | [clsx](https://github.com/lukeed/clsx) + [tailwind-merge](https://github.com/dcastil/tailwind-merge) | — | Combinação e merge de classes (`cn()`) |
 
@@ -31,6 +32,7 @@ Todos em `app/components/ui/`:
 - **Input** — tema escuro zinc-800
 - **Dialog** — + `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogClose`
 - **Alert** — variants: `default`, `destructive`, `success`
+- **Chart** — `ChartContainer`, `ChartTooltip`, `ChartLegend` (shadcn chart com recharts)
 - **Label**, **Separator**, **Tabs**, **Popover**
 
 ### Tailwind CSS v4 — diferenças da v3
@@ -80,8 +82,8 @@ O tema atual usa `zinc` como cor neutra e `indigo` como cor primária, com supor
 | [@testing-library/jest-dom](https://github.com/testing-library/jest-dom) | — | Matchers customizados para DOM |
 | [jsdom](https://github.com/jsdom/jsdom) | — | Ambiente DOM simulado |
 
-- 21 arquivos de teste, 310 testes
-- Cobertura atual: ~99% statements, 100% branches (excluindo código gerado pelo Prisma)
+- 22 arquivos de teste, 344 testes
+- Cobertura atual: 100% statements, 100% branches (excluindo código gerado pelo Prisma)
 - Modo in-memory para testes (usa `app/data/store.js` em vez de Prisma)
 - Prisma é mockado com `vi.hoisted` + `vi.mock`
 

@@ -20,6 +20,11 @@ export async function GET() {
     if (payload.role === "funcionario" || payload.role === "admin") {
       user = await prisma.funcionario.findUnique({
         where: { id: Number(payload.sub) },
+        include: { endereco: true, empresa: true },
+      })
+    } else if (payload.role === "empresa") {
+      user = await prisma.empresa.findUnique({
+        where: { id: Number(payload.sub) },
         include: { endereco: true },
       })
     } else {
@@ -38,6 +43,7 @@ export async function GET() {
         ...payload,
         phone: user.phone,
         endereco: user.endereco,
+        empresa: user.empresa ?? null,
       },
     })
   } catch (err) {

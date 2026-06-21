@@ -133,10 +133,10 @@ flowchart LR
 
 **Critérios de Aceitação:**
 
-- [ ] O funcionário deve informar nome, preço e descrição do produto
-- [ ] O produto deve ficar visível para os usuários
-- [ ] O funcionário deve poder editar produtos cadastrados
-- [ ] O funcionário deve poder remover produtos
+- [x] O funcionário deve informar nome, preço e descrição do produto
+- [x] O produto deve ficar visível para os usuários
+- [x] O funcionário deve poder editar produtos cadastrados
+- [x] O funcionário deve poder remover produtos
 
 **Fluxo de Gerenciamento de Produtos:**
 

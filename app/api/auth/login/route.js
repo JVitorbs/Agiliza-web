@@ -13,9 +13,14 @@ export async function POST(req) {
       return Response.json({ error: "Email e senha obrigatórios" }, { status: 400 })
     }
 
-    // Tenta funcionário primeiro, depois usuário
+    // Tenta funcionário, depois empresa, depois usuário
     let principal = await prisma.funcionario.findUnique({ where: { email } })
     let role = "funcionario"
+
+    if (!principal) {
+      principal = await prisma.empresa.findUnique({ where: { email } })
+      role = "empresa"
+    }
 
     if (!principal) {
       principal = await prisma.usuario.findUnique({ where: { email } })
@@ -41,7 +46,7 @@ export async function POST(req) {
       email: principal.email,
       name: principal.name,
       role,
-      empresaId: role === "funcionario" ? principal.empresaId ?? null : null,
+      empresaId: role === "funcionario" ? principal.empresaId ?? null : role === "empresa" ? principal.id : null,
     }
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "8h" })

@@ -8,8 +8,7 @@ import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Badge } from "@/app/components/ui/badge"
 import { Separator } from "@/app/components/ui/separator"
-import { Alert, AlertDescription } from "@/app/components/ui/alert"
-import { useAlert } from "@/app/lib/useAlert"
+import { toast } from "sonner"
 
 const WEEK_LABELS = {
   segunda: "Seg", terca: "Ter", quarta: "Qua",
@@ -25,7 +24,6 @@ export default function ServiceDetailPage() {
   const [date, setDate] = useState("")
   const [time, setTime] = useState("")
   const [scheduling, setScheduling] = useState(false)
-  const { alert, showAlert, dismissAlert } = useAlert()
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -46,7 +44,7 @@ export default function ServiceDetailPage() {
   }, [params.id])
 
   async function schedule() {
-    if (!date || !time) { showAlert("Selecione data e horário"); return }
+    if (!date || !time) { toast.error("Selecione data e horário"); return }
     setScheduling(true)
     const res = await fetch("/api/appointments", {
       method: "POST",
@@ -55,7 +53,7 @@ export default function ServiceDetailPage() {
     })
     const data = await res.json()
     setScheduling(false)
-    if (data.error) { showAlert(data.error); return }
+    if (data.error) { toast.error(data.error); return }
     window.dispatchEvent(new Event("cart-updated"))
     router.push("/cliente/agendamentos")
   }
@@ -82,12 +80,6 @@ export default function ServiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      {alert && (
-        <Alert variant={alert.variant} className="flex items-center justify-between">
-          <AlertDescription>{alert.message}</AlertDescription>
-          <button onClick={dismissAlert} className="ml-4 text-sm font-medium hover:underline shrink-0">Fechar</button>
-        </Alert>
-      )}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/cliente/servicos" className="hover:text-foreground transition-colors">Serviços</Link>
         <span>/</span>

@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
 import { LogIn, Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card"
@@ -15,13 +16,11 @@ function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState("")
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setError("")
     setErrors({})
 
     const result = loginSchema.safeParse({ email, password })
@@ -46,7 +45,7 @@ function LoginForm() {
     setLoading(false)
 
     if (data.error) {
-      setError(data.error)
+      toast.error(data.error)
       return
     }
 
@@ -58,6 +57,8 @@ function LoginForm() {
       router.push(redirect)
     } else if (data.user.role === "funcionario" || data.user.role === "admin") {
       router.push("/funcionario/produtos")
+    } else if (data.user.role === "empresa") {
+      router.push("/empresa/dashboard")
     } else {
       router.push("/cliente/produtos")
     }
@@ -85,12 +86,6 @@ function LoginForm() {
             <CardDescription>Informe seu email e senha para continuar.</CardDescription>
           </CardHeader>
           <CardContent>
-            {error && (
-              <div className="mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
