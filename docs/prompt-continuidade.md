@@ -42,13 +42,15 @@ Projeto para disciplina de **Engenharia de Software** (apresentação com nota).
 - **Next.js 16.2.6** com App Router e Turbopack — NÃO usar Pages Router
 - **React 19**
 - **Tailwind CSS v4** — sintaxe `@import "tailwindcss"` no CSS, tema via `@theme {}`, postcss com `@tailwindcss/postcss`
-- **shadcn/ui** — componentes criados manualmente (CLI do shadcn não funciona com Next.js 16)
+- **shadcn/ui** — componentes criados manualmente (CLI do shadcn funciona com Next.js 16 via `npx shadcn@latest add`; `components.json` configurado com `style: default`, `tailwind.css: app/globals.css`, `aliases: @/app/components`)
 - **Prisma 7** com `@prisma/adapter-pg` + `pg` — client gerado em `generated/prisma/` (não em `node_modules`)
 - **PostgreSQL no Supabase** — já configurado e rodando, `.env` já tem todas as variáveis
 - **JWT** via `jsonwebtoken` + cookie httpOnly `agiliza_token` — autorização em `proxy.js`
 - **bcryptjs** para hash de senha
 - **jose** para verificação de JWT no Edge Runtime (proxy.js)
 - **Vitest** para testes (não Jest) — modo in-memory para testes, Prisma para produção
+- **Sonner** (`next-sonner`) — notificações toast, `<Toaster />` no layout raiz, substituiu o hook `useAlert`
+- **Recharts** — biblioteca de gráficos usada no dashboard da empresa com componente Chart (shadcn/ui)
 - **GitHub Actions** CI em `.github/workflows/ci.yml` — job de build + job de testes separados
 - Deploy na **Vercel**, banco no **Supabase** (região sa-east-1)
 - **Sem imagens** — sem storage, sem Supabase Storage, sem S3. Cards usam ícones/emojis/gradientes por categoria
@@ -78,27 +80,34 @@ Agiliza-web/
 ├── app/
 │   ├── api/
 │   │   ├── auth/
-│   │   │   ├── login/route.js       ✅ PRONTO
+│   │   │   ├── login/route.js       ✅ PRONTO (busca Funcionario→Usuario→Empresa)
 │   │   │   ├── logout/route.js      ✅ PRONTO
-│   │   │   ├── register/route.js    ✅ PRONTO
-│   │   │   └── me/route.js          ✅ PRONTO
-│   │   ├── products/route.js        ✅ PRONTO (GET público, mutações requer funcionário)
-│   │   ├── services/route.js        ✅ PRONTO (GET público, mutações requer funcionário)
+│   │   │   ├── register/route.js    ✅ PRONTO (email único nas 3 tabelas, campo empresaEmail opcional)
+│   │   │   └── me/route.js          ✅ PRONTO (inclui endereco e empresa na query)
+│   │   ├── empresa/
+│   │   │   ├── dashboard/route.js   ✅ PRONTO — GET com $transaction (7 queries) + agregações
+│   │   │   └── funcionarios/route.js ✅ PRONTO — GET lista, POST vincula, DELETE desvincula
+│   │   ├── products/route.js        ✅ PRONTO (GET público, mutações requer funcionário/empresa)
+│   │   ├── services/route.js        ✅ PRONTO (GET público, mutações requer funcionário/empresa)
 │   │   ├── cart/route.js            ✅ PRONTO (Prisma em prod, in-memory em teste)
 │   │   ├── orders/route.js          ✅ PRONTO (Prisma em prod, in-memory em teste)
 │   │   └── appointments/route.js    ✅ PRONTO (Prisma em prod, in-memory em teste)
 │   ├── components/
-│   │   ├── Navbar.jsx               ⚠️ FUNCIONA mas usa classes CSS antigas, migrar para Tailwind
+│   │   ├── Navbar.jsx               ✅ PRONTO (links por role, popover, mobile, Sonner)
 │   │   └── ui/
 │   │       ├── button.jsx           ✅ PRONTO — shadcn Button
-│   │       ├── card.jsx             ✅ PRONTO — shadcn Card + subcomponentes
+│   │       ├── card.jsx             ✅ PRONTO — shadcn Card (rounded-lg, p-6)
 │   │       ├── badge.jsx            ✅ PRONTO — shadcn Badge
 │   │       ├── input.jsx            ✅ PRONTO — shadcn Input
 │   │       ├── dialog.jsx           ✅ PRONTO — shadcn Dialog
 │   │       ├── label.jsx            ✅ PRONTO — shadcn Label
-│   │       └── separator.jsx        ✅ PRONTO — shadcn Separator
+│   │       ├── separator.jsx        ✅ PRONTO — shadcn Separator
+│   │       └── chart.jsx            ✅ PRONTO — shadcn Chart (ChartContainer, ChartTooltip, ChartLegend)
 │   ├── lib/
 │   │   ├── prisma.js                ✅ PRONTO — singleton com PrismaPg adapter
+│   │   ├── validation.js            ✅ PRONTO — schemas Zod
+│   │   ├── masks.js                 ✅ PRONTO — CPF/CNPJ masks
+│   │   ├── error-handler.js         ✅ PRONTO — tratamento de erros
 │   │   └── utils.js                 ✅ PRONTO — cn() helper (clsx + tailwind-merge)
 │   ├── services/
 │   │   ├── ProductService.js        ✅ PRONTO — validateProduct()
@@ -106,34 +115,31 @@ Agiliza-web/
 │   │   ├── AppointmentService.js    ✅ PRONTO — validateDate(), validateConflict(), validateAppointment()
 │   │   └── ServiceService.js        ✅ PRONTO — validateService() com dias/horários
 │   ├── data/store.js                ✅ PRONTO — arrays in-memory para testes
-│   ├── cliente/
-│   │   ├── produtos/page.js         ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   │   ├── carrinho/page.js         ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   │   ├── pedidos/page.js          ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   │   ├── servicos/page.js         ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   │   └── agendamentos/page.js     ⚠️ LÓGICA OK, visual com classes CSS antigas
+│   ├── empresa/
+│   │   ├── dashboard/page.js        ✅ PRONTO — 4 cards métricos + 3 gráficos (bar agendamentos, pie serviços, bar vendas)
+│   │   └── funcionarios/page.js     ✅ PRONTO — tabela + Dialog vincular/desvincular
+│   ├── cliente/...
 │   ├── funcionario/
-│   │   ├── produtos/page.js         ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   │   └── servicos/page.js         ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   ├── login/page.js                ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   ├── register/page.js             ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   ├── page.js                      ⚠️ LÓGICA OK, visual com classes CSS antigas
-│   ├── layout.js                    ✅ PRONTO — importa Navbar + globals.css
-│   └── globals.css                  ✅ PRONTO — Tailwind v4 com @theme dark (zinc/indigo)
+│   │   ├── produtos/page.js         ✅ PRONTO (migrado para shadcn, exibe nome da empresa)
+│   │   └── servicos/page.js         ✅ PRONTO (migrado para shadcn, exibe nome da empresa)
+│   ├── login/page.js                ✅ PRONTO (redirect empresa → /empresa/dashboard, Sonner toast)
+│   ├── register/page.js             ✅ PRONTO (campo empresaEmail para funcionários)
+│   ├── page.js                      ⚠️ visual com classes CSS antigas
+│   ├── layout.js                    ✅ PRONTO — Navbar + Toaster (Sonner)
+│   └── globals.css                  ✅ PRONTO — Tailwind v4 com @theme (zinc/indigo), vars chart-1..5, sem @theme inline
 ├── prisma/
 │   └── schema.prisma                ✅ PRONTO — schema completo sem imageUrl
 ├── tests/
-│   ├── ProductService.test.js       ✅ passando
-│   ├── CartService.test.js          ✅ passando
-│   ├── AppointmentService.test.js   ✅ passando
-│   ├── productsRoute.test.js        ✅ passando
-│   ├── cartRoute.test.js            ✅ passando
-│   ├── ordersRoute.test.js          ✅ passando
-│   ├── appointmentsRoute.test.js    ✅ passando
-│   ├── authRoute.test.js            ❌ falha — testa login com array hardcoded antigo (admin@agiliza.com/123456), precisa atualizar para mockar Prisma
-│   └── logoutRoute.test.js          ❌ falha — chama cookies() fora do contexto Next.js, problema estrutural
+│   ├── ... (22 arquivos, ver docs/test-results.md)
+│   ├── authRoute.test.js            ✅ passando
+│   ├── logoutRoute.test.js          ✅ passando
+│   ├── registerRoute.test.js        ✅ passando (19 testes — email único, empresaEmail)
+│   ├── meRoute.test.js              ✅ passando (7 testes — endereco, empresa)
+│   ├── empresaFuncionariosRoute.test.js ✅ passando (18 testes)
+│   └── empresaDashboardRoute.test.js ✅ passando (8 testes — 7 queries, agregações)
 ├── .github/workflows/ci.yml         ✅ PRONTO — job build + job test separados
-├── proxy.js                         ✅ PRONTO — substitui middleware.js no Next.js 16
+├── proxy.js                         ✅ PRONTO — protege /empresa e /api/empresa, role empresa/funcionario/admin
+├── components.json                  ✅ PRONTO — shadcn config (style default, aliases @/app/components)
 ├── postcss.config.mjs               ✅ PRONTO
 ├── next.config.mjs                  ⚠️ tem bloco turbopack manual que pode causar problema na Vercel
 └── package.json                     ⚠️ falta postinstall e seed script
@@ -147,15 +153,19 @@ Agiliza-web/
 
 **Login** (`POST /api/auth/login`):
 - Busca primeiro em `Funcionario` pelo email → role = `"funcionario"`
+- Se não achar, busca em `Empresa` pelo email → role = `"empresa"`, `empresaId = principal.id`
 - Se não achar, busca em `Usuario` → role = `"cliente"`
 - Compara senha com bcrypt
-- Assina JWT com `{ sub: id, email, name, role }`, expira em 8h
+- Assina JWT com `{ sub: id, email, name, role, empresaId? }`, expira em 8h
 - Seta cookie httpOnly `agiliza_token` (secure em prod, sameSite lax)
 - Retorna `{ success: true, user: { sub, email, name, role } }`
 - Frontend salva user no `localStorage` como `agiliza_user`
+- Empresa é redirecionada para `/empresa/dashboard`
 
 **Register** (`POST /api/auth/register`):
-- Campos: name, email, password, phone, cpf
+- Campos: name, email, password, phone, cpf, empresaEmail (opcional para funcionários)
+- Verifica email único nas 3 tabelas (`usuario`, `funcionario`, `empresa`) antes de criar
+- Se `empresaEmail` informado, resolve para `empresaId` e cria `Funcionario` vinculado à empresa
 - Cria `Endereco` placeholder automaticamente (obrigatório pelo schema)
 - Hash bcrypt rounds 10
 
@@ -169,6 +179,7 @@ Exporta `proxy` (não `middleware`) — mudança do Next.js 16.
 
 Rotas protegidas:
 - `/funcionario/*` e mutações em `/api/services` → exige `role === "funcionario"` ou `"admin"`
+- `/empresa/*` e `/api/empresa/*` → exige `role === "empresa"`, `"funcionario"` ou `"admin"`
 - `/cliente/*`, `/api/appointments/*`, `/api/cart/*`, `/api/orders/*` → exige qualquer usuário autenticado
 - **GET em `/api/products` e `/api/services` é público** — qualquer um pode ver produtos/serviços sem login
 
@@ -177,6 +188,7 @@ Comportamento:
 - Sem token em rota de página → redirect para `/login?redirect=<caminho>`
 - Role insuficiente em rota de página → redirect para `/`
 - Com token válido → injeta headers `x-user-id`, `x-user-role`, `x-user-email` na request
+- Para role empresa, headers também incluem `empresaId` (igual ao `principal.id` do JWT)
 
 ### APIs
 
@@ -198,6 +210,20 @@ const useMemoryStore = process.env.NODE_ENV === "test"
 **Appointments** (`/api/appointments`):
 - POST: `{ serviceId, date, time }` — valida dia da semana contra `availableDays` do serviço, valida faixa de horário, verifica conflito de horário
 
+### Empresa
+
+**Dashboard** (`GET /api/empresa/dashboard`):
+- Executa `prisma.$transaction` com 7 queries paralelas:
+  - 4 counts: total de produtos, serviços, funcionários, agendamentos
+  - 2 findMany agendamento: agrupa por dia (`agruparAgendamentosPorDia`) e por serviço (`agruparAgendamentosPorServico`)
+  - 1 findMany pedidoItem: filtra por `produto.empresaId` + `pedido.status === "FINALIZADO"`, agrupa vendas por dia (`agruparVendasPorDia`)
+- Retorna `{ totalProdutos, totalServicos, totalFuncionarios, totalAgendamentos, agendamentosPorDia, agendamentosPorServico, vendasPorDia }`
+
+**Funcionários** (`/api/empresa/funcionarios`):
+- GET: lista funcionários vinculados à empresa (nome, email, telefone, status)
+- POST: `{ email }` — vincula funcionário existente (por email) à empresa
+- DELETE: `{ id }` — desvincula funcionário da empresa (seta empresaId como null)
+
 ### Modo teste vs produção — CRÍTICO, NÃO QUEBRAR
 
 Os testes do Vitest não têm ambiente Next.js, então `cookies()` e Prisma real não funcionam. O padrão `useMemoryStore` resolve isso. **Não remover essa lógica das rotas ao editar.**
@@ -212,9 +238,39 @@ O `cartRoute.test.js` passa um objeto `{ id, name, price }` diretamente no POST 
 
 ---
 
+## O Que Já Foi Feito (novas funcionalidades desde última versão)
+
+### Branch `feature/email-unico-login-empresa` ✅ (mergada em develop)
+- Login para empresas: busca `Funcionario` → `Empresa` → `Usuario`; JWT inclui `role: "empresa"` e `empresaId`
+- Email único no register: verifica nas 3 tabelas antes de criar
+- Cadastro de funcionário com `empresaEmail` opcional para vincular à empresa
+- Navbar: links Dashboard, Funcionários, Produtos, Serviços para empresa
+- Sonner: `<Toaster>` no layout, `toast.error()`/`toast.success()` em 6+ páginas, substituiu `useAlert.js` e `alert.jsx` (removidos)
+- AlertDialog: 2 `confirm()` substituídos por Dialog em funcionario/produtos e funcionario/servicos
+- Testes: registerRoute.test.js (19), meRoute.test.js (7) — todos passando
+
+### Branch `feature/empresa-vincular-funcionario` ✅ (mergada em develop)
+- API `/api/empresa/funcionarios`: GET lista, POST vincula por email, DELETE desvincula
+- Página `/empresa/funcionarios`: tabela + Dialog vincular + Dialog confirmar desvincular
+- Funcionário vê nome da empresa nos cabeçalhos de produtos/serviços
+- Testes: empresaFuncionariosRoute.test.js (18) — passando
+
+### Branch `feature/empresa-dashboard` ✅ (commits feitos, aguardando PR)
+- Dashboard API: `$transaction` com 7 queries paralelas + agregações (agendamentos/dia, agendamentos/serviço, vendas/dia)
+- Dashboard page: 4 cards métricos + bar chart (agendamentos/dia) + pie chart (agendamentos/serviço) + bar chart (vendas/dia, col-span-2)
+- Shadcn chart component adicionado via CLI; recharts instalado; `components.json` configurado
+- `globals.css` atualizado com vars `--color-chart-1..5`; removido `@theme inline`/`:root` que quebravam dark mode
+- Testes: empresaDashboardRoute.test.js (8) — passando
+- **344 testes, 22/22 arquivos, 100% coverage**
+- CI dispara corretamente quando branch tem commits novos
+
 ## O Que Falta Fazer (em ordem de prioridade)
 
-### 1. Seed do banco (URGENTE — sem isso o MVP não tem nada pra mostrar)
+### 1. Finalizar branches abertas
+- **`feature/empresa-dashboard`**: fazer PR para develop → revisar → merge
+- **`docs/atualiza-docs`**: fazer PR para develop → revisar → merge (documentação atualizada neste commit)
+
+### 2. Seed do banco (URGENTE — sem isso o MVP não tem nada pra mostrar)
 
 Criar `prisma/seed.js` com:
 
@@ -227,10 +283,12 @@ import bcrypt from "bcryptjs"
 ```
 
 Conteúdo do seed:
-- 1 `Endereco` → 1 `Funcionario` (email: `funcionario@agiliza.com`, senha: `123456`, isManager: true)
+- 1 `Endereco` → 1 `Empresa` (email: `empresa@agiliza.com`, senha: `123456`)
+- 1 `Endereco` → 1 `Funcionario` (email: `funcionario@agiliza.com`, senha: `123456`, vinculado à empresa)
 - 1 `Endereco` → 1 `Usuario` (email: `cliente@agiliza.com`, senha: `123456`)
-- ~8 `Produto` com nome, descrição e preço realistas (ex: loja de conveniência — água, refrigerante, salgadinho, chocolate, café, biscoito, energético, bala)
-- ~4 `Servico` com availableDays, startTime, endTime (ex: Corte Masculino, Manicure, Hidratação Capilar, Barba)
+- ~8 `Produto` da empresa com nome, descrição e preço realistas
+- ~4 `Servico` da empresa com availableDays, startTime, endTime
+- 1 agendamento passado, 1 pedido finalizado para popular dashboard
 
 Adicionar no `package.json`:
 ```json
@@ -240,55 +298,21 @@ Adicionar no `package.json`:
 
 Rodar: `npx prisma db seed`
 
-### 2. Migrar todas as páginas para shadcn + Tailwind
+### 3. Migrar páginas restantes para shadcn + Tailwind
 
-Todas as páginas marcadas com ⚠️ acima têm a **lógica correta** mas ainda usam classes CSS customizadas antigas (`.btn`, `.card`, `.page`, `.modal-overlay`, etc.) que existiam no globals.css anterior. O globals.css atual **só tem Tailwind v4**, então essas classes não existem mais e as páginas ficam sem estilo.
+Páginas ainda com ⚠️ no diagrama:
+1. `app/page.js` — home com hero section
+2. `app/cliente/produtos/page.js` — grid de produtos
+3. `app/cliente/carrinho/page.js` — carrinho
+4. `app/cliente/pedidos/page.js` — lista de pedidos
+5. `app/cliente/servicos/page.js` — grid de serviços
+6. `app/cliente/agendamentos/page.js` — grid de agendamentos
 
-**A tarefa é reescrever o JSX de cada página usando:**
-- Componentes de `app/components/ui/` (Button, Card, CardHeader, CardContent, Badge, Input, Dialog, Label, Separator)
-- Classes Tailwind diretamente (ex: `className="flex items-center gap-4 p-6"`)
-- `lucide-react` para ícones (já instalado)
-
-**Não mudar a lógica** (fetches, estados, handlers) — só o JSX/visual.
-
-**Visual alvo:** dark marketplace moderno, estilo Vercel Dashboard ou shadcn/ui demo. Tema: zinc escuro + indigo como cor primária.
-
-Páginas para migrar:
-1. `app/components/Navbar.jsx` — barra fixa no topo, logo "A" + "Agiliza", links por role, contador de carrinho, botões Entrar/Cadastrar ou nome do usuário + Sair
-2. `app/page.js` — home com hero section, 3 cards de features (Comprar, Agendar, Pedidos), CTA para área do funcionário
-3. `app/login/page.js` — card centralizado na tela, logo, form email+senha, link para cadastro
-4. `app/register/page.js` — card centralizado, form com grid CPF/telefone, link para login
-5. `app/cliente/produtos/page.js` — grid de 4 colunas de cards de produto, barra de busca, botão "Adicionar ao carrinho" em cada card. **Ver produtos NÃO requer login**, mas adicionar ao carrinho redireciona para login se não autenticado
-6. `app/cliente/carrinho/page.js` — lista de itens + painel sticky com resumo e total + botão finalizar
-7. `app/cliente/pedidos/page.js` — lista de pedidos com Badge de status (FINALIZADO=verde, ABERTO=amarelo, CANCELADO=vermelho), data formatada em pt-BR, número da NF
-8. `app/cliente/servicos/page.js` — grid de cards de serviço, ao clicar abre painel lateral sticky com seletor de data/hora e botão confirmar
-9. `app/cliente/agendamentos/page.js` — grid de cards com nome do serviço, data e hora formatados
-10. `app/funcionario/produtos/page.js` — tabela com colunas Produto/Descrição/Preço/Ações, Dialog modal para criar/editar (campos: Nome, Descrição, Preço)
-11. `app/funcionario/servicos/page.js` — tabela similar, Dialog com campos: Nome, Descrição, Preço, Dias disponíveis (botões toggle para cada dia da semana), Horário início/fim
-
-### 3. Corrigir testes com falha
-
-**`authRoute.test.js`** — reescrever para mockar Prisma, similar ao `productsRoute.test.js`:
-```js
-const mockPrisma = vi.hoisted(() => ({
-  funcionario: { findUnique: vi.fn() },
-  usuario: { findUnique: vi.fn() },
-}))
-vi.mock("../app/lib/prisma.js", () => ({ prisma: mockPrisma }))
-```
-Também mockar `next/headers` (o `cookies()`) e `jsonwebtoken`.
-Testar: login válido como funcionário, login válido como cliente, credenciais inválidas, campos faltando.
-
-**`logoutRoute.test.js`** — mockar `next/headers`:
-```js
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(() => ({ delete: vi.fn() }))
-}))
-```
+Já migradas: Navbar, login, register, funcionario/produtos, funcionario/servicos
 
 ### 4. Ajustar `next.config.mjs`
 
-Remover o bloco `turbopack: { root: __dirname }` — foi adicionado manualmente e pode causar problemas na Vercel. O Next.js 16 já usa Turbopack por padrão em dev.
+Remover o bloco `turbopack: { root: __dirname }` — foi adicionado manualmente e pode causar problemas na Vercel.
 
 ```js
 /** @type {import('next').NextConfig} */
@@ -304,6 +328,16 @@ No `.github/workflows/ci.yml`, o job de build precisa do client Prisma gerado. A
   run: npx prisma generate
 ```
 antes do `npm run build`. O job de testes **não precisa** porque os testes mockam o Prisma.
+
+### 6. CI — usar `vitest run` em vez de `vitest`
+
+O script `npm test` atualmente executa `vitest` (modo watch), que pode travar no CI. Mudar para `vitest run` no CI ou criar script separado:
+```json
+"scripts": {
+  "test": "vitest",
+  "test:ci": "vitest run"
+}
+```
 
 ---
 
@@ -353,9 +387,13 @@ Todos em `app/components/ui/`, importar com caminho relativo ou `@/app/component
 
 **Dialog** + `DialogTrigger`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogClose`
 
+**Chart** — `ChartContainer`, `ChartTooltip`, `ChartLegend`, `ChartConfig` (shadcn chart + recharts)
+
 **Label**, **Separator**
 
 **cn()** — `import { cn } from "@/app/lib/utils"`
+
+**sonner** — `<Toaster />` no layout, `toast.success()`/`toast.error()` nas páginas
 
 **lucide-react** — `import { ShoppingCart, Package, Calendar, ... } from "lucide-react"`
 
@@ -365,6 +403,8 @@ Todos em `app/components/ui/`, importar com caminho relativo ou `@/app/component
 - Não tem `tailwind.config.js` — tudo no CSS
 - Classes de opacidade como `bg-white/8` funcionam normalmente
 - `border-white/8` equivale a `border: 1px solid rgba(255,255,255,0.08)`
+- **Chart vars**: `--color-chart-1..5` definidas em `@theme` e replicadas em `.dark`; NÃO usar `@theme inline` + `:root` juntos (conflita com dark mode)
+- **`npm test`** atualmente executa `vitest` (modo watch) — para CI usar `vitest run` ou criar script `test:ci`
 
 ---
 
@@ -389,7 +429,9 @@ npx prisma studio     # GUI do banco
 - `/cliente/produtos` — público, qualquer um vê os produtos seedados no banco
 - `/login` e `/register` — públicos
 - Após login como cliente: acesso a carrinho, pedidos, serviços, agendamentos
-- Após login como funcionário: acesso a gerenciamento de produtos e serviços
+- Após login como funcionário: acesso a gerenciamento de produtos e serviços (vinculados à empresa)
+- Após login como empresa: Dashboard com métricas e gráficos, gerenciamento de funcionários
 - Visual dark marketplace consistente com shadcn + Tailwind em todas as páginas
 - Build passando na Vercel
-- Testes passando no CI com ≥60% de cobertura
+- Testes passando no CI com 100% de cobertura
+- 22 arquivos de teste, 344 testes
