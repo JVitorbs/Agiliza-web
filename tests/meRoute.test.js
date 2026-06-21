@@ -75,6 +75,7 @@ describe("Me Route", () => {
     mockPrisma.funcionario.findUnique.mockResolvedValue({
       id: 2, name: "Func", email: "func@empresa.com", phone: "(11) 99999-9999",
       endereco: { street: "Rua B", city: "Campinas", state: "SP", zipCode: "13000-000", country: "Brasil" },
+      empresa: { id: 1, name: "Agiliza Ltda" },
     })
 
     const res = await GET()
@@ -82,6 +83,41 @@ describe("Me Route", () => {
     const body = await res.json()
     expect(body.user.role).toBe("funcionario")
     expect(body.user.endereco.street).toBe("Rua B")
+    expect(body.user.empresa.name).toBe("Agiliza Ltda")
+  })
+
+  it("retorna dados da empresa autenticada", async () => {
+    mockTokenValue.current = "emp-token"
+    mockJwt.default.verify.mockReturnValue({
+      sub: 3, email: "contato@agiliza.com", name: "Agiliza", role: "empresa",
+    })
+    mockPrisma.empresa.findUnique.mockResolvedValue({
+      id: 3, name: "Agiliza", email: "contato@agiliza.com", phone: "(11) 99999-9999",
+      endereco: { street: "Rua C", city: "São Paulo", state: "SP", zipCode: "01001-000", country: "Brasil" },
+    })
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.user.role).toBe("empresa")
+    expect(body.user.endereco.city).toBe("São Paulo")
+  })
+
+  it("retorna empresa null para funcionário sem vínculo", async () => {
+    mockTokenValue.current = "func2-token"
+    mockJwt.default.verify.mockReturnValue({
+      sub: 4, email: "semempresa@e.com", name: "Sem Empresa", role: "funcionario",
+    })
+    mockPrisma.funcionario.findUnique.mockResolvedValue({
+      id: 4, name: "Sem Empresa", email: "semempresa@e.com", phone: "(11) 99999-9999",
+      endereco: { street: "Rua D", city: "São Paulo", state: "SP", zipCode: "01001-000", country: "Brasil" },
+      empresa: null,
+    })
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.user.empresa).toBeNull()
   })
 
   it("retorna payload quando usuário não existe no banco", async () => {
