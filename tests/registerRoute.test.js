@@ -119,6 +119,17 @@ describe("Register Route", () => {
       expect(res.status).toBe(201)
     })
 
+    it("rejeita funcionário com campos faltando", async () => {
+      const req = new Request("http://localhost", {
+        method: "POST",
+        body: JSON.stringify({ type: "funcionario", name: "Maria" }),
+      })
+      const res = await POST(req)
+      expect(res.status).toBe(400)
+      const body = await res.json()
+      expect(body.error).toBe("Todos os campos são obrigatórios")
+    })
+
     it("rejeita funcionário com empresaId inválido", async () => {
       mockPrisma.funcionario.findFirst.mockResolvedValue(null)
       mockPrisma.empresa.findUnique.mockResolvedValue(null)

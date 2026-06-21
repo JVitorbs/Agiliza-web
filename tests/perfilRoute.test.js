@@ -129,4 +129,32 @@ describe("Perfil Route", () => {
     const body = await res.json()
     expect(body.error).toBe("Não autorizado")
   })
+
+  it("retorna 404 no address update quando usuario não encontrado", async () => {
+    mockPrisma.usuario.findUnique.mockResolvedValue(null)
+
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: { "x-user-id": "1" },
+      body: JSON.stringify({ street: "Rua Z" }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(404)
+    const body = await res.json()
+    expect(body.error).toBe("Usuário não encontrado")
+  })
+
+  it("retorna 400 no catch quando Prisma lança erro", async () => {
+    mockPrisma.usuario.findUnique.mockRejectedValue(new Error("Falha no banco"))
+
+    const req = new Request("http://localhost", {
+      method: "PATCH",
+      headers: { "x-user-id": "1" },
+      body: JSON.stringify({ name: "X" }),
+    })
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.error).toBe("Falha no banco")
+  })
 })

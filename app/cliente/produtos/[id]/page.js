@@ -7,6 +7,8 @@ import { ShoppingCart, ArrowLeft, Store, Minus, Plus, Package, MapPin, Truck, Bu
 import { Button } from "@/app/components/ui/button"
 import { Badge } from "@/app/components/ui/badge"
 import { Separator } from "@/app/components/ui/separator"
+import { Alert, AlertDescription } from "@/app/components/ui/alert"
+import { useAlert } from "@/app/lib/useAlert"
 
 const CATEGORY_ICONS = {
   agua: "💧", refrigerante: "🥤", salgadinho: "🥨",
@@ -46,6 +48,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [adding, setAdding] = useState(false)
   const [added, setAdded] = useState(false)
+  const { alert, showAlert, dismissAlert } = useAlert()
 
   useEffect(() => {
     Promise.all([
@@ -69,7 +72,7 @@ export default function ProductDetailPage() {
     })
     const data = await res.json()
     setAdding(false)
-    if (data.error) { alert(data.error); return }
+    if (data.error) { showAlert(data.error); return }
     setAdded(true)
     window.dispatchEvent(new Event("cart-updated"))
     setTimeout(() => setAdded(false), 2000)
@@ -102,6 +105,12 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-6">
+      {alert && (
+        <Alert variant={alert.variant} className="flex items-center justify-between">
+          <AlertDescription>{alert.message}</AlertDescription>
+          <button onClick={dismissAlert} className="ml-4 text-sm font-medium hover:underline shrink-0">Fechar</button>
+        </Alert>
+      )}
       <nav className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/cliente/produtos" className="hover:text-foreground transition-colors">Produtos</Link>
         <span>/</span>

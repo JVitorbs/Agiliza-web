@@ -5,6 +5,7 @@ import Footer from "./components/Footer"
 export const metadata = {
   title: "Agiliza",
   description: "Plataforma de vendas e serviços.",
+  icons: { icon: "/img/logo_simb_azul.png" },
 }
 
 export default function RootLayout({ children }) {

@@ -194,6 +194,39 @@ describe("Orders Route — Prisma path", () => {
     expect(body.total).toBe(150)
   })
 
+  it("POST usa fallback 0 e 'Item' quando servico não tem price/name", async () => {
+    const servicoItem = mockCartItem({
+      produtoId: null,
+      servicoId: 3,
+      name: "Serviço Genérico",
+      unitPrice: 0,
+      subtotal: 0,
+      produto: null,
+      servico: { id: 3 },
+    })
+    mockPrisma.carrinho.findFirst.mockResolvedValue(mockCart([servicoItem]))
+    mockPrisma.pedido.create.mockResolvedValue({
+      id: 12,
+      usuarioId: 1,
+      total: 0,
+      status: "FINALIZADO",
+      invoiceNumber: "INV-000",
+      createdAt: new Date(),
+      itens: [
+        { id: 3, name: "Serviço Genérico", quantity: 1, unitPrice: 0, subtotal: 0 },
+      ],
+    })
+    mockPrisma.itens.deleteMany.mockResolvedValue({ count: 1 })
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      headers: headers(),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(201)
+    expect(mockPrisma.pedido.create).toHaveBeenCalled()
+  })
+
   it("POST trata erro Prisma", async () => {
     mockPrisma.carrinho.findFirst.mockRejectedValue(new Error("DB error"))
 
