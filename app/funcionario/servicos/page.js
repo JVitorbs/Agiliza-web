@@ -25,6 +25,7 @@ const EMPTY_FORM = { name: "", description: "", price: "", availableDays: [], st
 
 export default function FuncionarioServicosPage() {
   const [services, setServices] = useState([])
+  const [empresa, setEmpresa] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
   const [loading, setLoading] = useState(true)
@@ -32,7 +33,15 @@ export default function FuncionarioServicosPage() {
   const [open, setOpen] = useState(false)
   const [confirmId, setConfirmId] = useState(null)
 
-  useEffect(() => { loadServices() }, [])
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(r => r.json())
+      .then(data => {
+        if (data.user?.empresa) setEmpresa(data.user.empresa)
+      })
+      .catch(() => {})
+    loadServices()
+  }, [])
 
   async function loadServices() {
     setLoading(true)
@@ -142,6 +151,9 @@ export default function FuncionarioServicosPage() {
           <h1 className="text-2xl font-bold tracking-tight">Gerenciar Serviços</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {services.length} serviço{services.length !== 1 ? "s" : ""} cadastrado{services.length !== 1 ? "s" : ""}
+            {empresa && (
+              <span> — <span className="font-medium text-foreground">{empresa.name}</span></span>
+            )}
           </p>
         </div>
         <Button onClick={startNew}>
