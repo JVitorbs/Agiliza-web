@@ -5,8 +5,7 @@ import { Package, Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Alert, AlertDescription } from "@/app/components/ui/alert"
-import { useAlert } from "@/app/lib/useAlert"
+import { toast } from "sonner"
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,7 @@ export default function FuncionarioProdutosPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [open, setOpen] = useState(false)
-  const { alert, showAlert, dismissAlert } = useAlert()
+  const [confirmId, setConfirmId] = useState(null)
 
   useEffect(() => { loadProducts() }, [])
 
@@ -82,31 +81,42 @@ export default function FuncionarioProdutosPage() {
     const data = await res.json()
     setSaving(false)
 
-    if (data.error) { showAlert(data.error); return }
+    if (data.error) { toast.error(data.error); return }
     handleClose()
     await loadProducts()
   }
 
-  async function remove(id) {
-    if (!confirm("Remover produto?")) return
+  async function handleRemove() {
+    if (confirmId === null) return
     const res = await fetch("/api/products", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id: confirmId }),
     })
     const data = await res.json()
-    if (data.error) { showAlert(data.error); return }
+    setConfirmId(null)
+    if (data.error) { toast.error(data.error); return }
     await loadProducts()
   }
 
   return (
     <div className="space-y-8">
-      {alert && (
-        <Alert variant={alert.variant} className="flex items-center justify-between">
-          <AlertDescription>{alert.message}</AlertDescription>
-          <button onClick={dismissAlert} className="ml-4 text-sm font-medium hover:underline shrink-0">Fechar</button>
-        </Alert>
-      )}
+      <Dialog open={confirmId !== null} onOpenChange={(open) => { if (!open) setConfirmId(null) }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover produto?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">Esta ação não pode ser desfeita.</p>
+          <div className="flex gap-3 pt-2">
+            <Button variant="destructive" onClick={handleRemove}>
+              Remover
+            </Button>
+            <Button variant="outline" onClick={() => setConfirmId(null)}>
+              Cancelar
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Gerenciar Produtos</h1>
@@ -192,7 +202,7 @@ export default function FuncionarioProdutosPage() {
                           <Pencil className="h-3.5 w-3.5 mr-1" />
                           Editar
                         </Button>
-                        <Button variant="destructive" size="sm" onClick={() => remove(product.id)}>
+                        <Button variant="destructive" size="sm" onClick={() => setConfirmId(product.id)}>
                           <Trash2 className="h-3.5 w-3.5 mr-1" />
                           Remover
                         </Button>
