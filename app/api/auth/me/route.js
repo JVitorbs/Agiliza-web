@@ -22,6 +22,11 @@ export async function GET() {
         where: { id: Number(payload.sub) },
         include: { endereco: true },
       })
+    } else if (payload.role === "empresa") {
+      user = await prisma.empresa.findUnique({
+        where: { id: Number(payload.sub) },
+        include: { endereco: true },
+      })
     } else {
       user = await prisma.usuario.findUnique({
         where: { id: Number(payload.sub) },

@@ -4,8 +4,8 @@ describe("Register Route", () => {
   let POST
   const mockPrisma = {
     endereco: { create: vi.fn() },
-    usuario: { findFirst: vi.fn(), create: vi.fn() },
-    funcionario: { findFirst: vi.fn(), create: vi.fn() },
+    usuario: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn() },
+    funcionario: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn() },
     empresa: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn() },
   }
 
@@ -35,6 +35,9 @@ describe("Register Route", () => {
     }
 
     it("cria cliente com sucesso", async () => {
+      mockPrisma.usuario.findUnique.mockResolvedValue(null)
+      mockPrisma.funcionario.findUnique.mockResolvedValue(null)
+      mockPrisma.empresa.findUnique.mockResolvedValue(null)
       mockPrisma.usuario.findFirst.mockResolvedValue(null)
       mockPrisma.endereco.create.mockResolvedValue({ id: 1 })
       mockPrisma.usuario.create.mockResolvedValue({ id: 1, name: "João Silva", email: "joao@email.com" })
@@ -54,7 +57,7 @@ describe("Register Route", () => {
     })
 
     it("rejeita cliente com email duplicado", async () => {
-      mockPrisma.usuario.findFirst.mockResolvedValue({ id: 1, email: "joao@email.com" })
+      mockPrisma.usuario.findUnique.mockResolvedValue({ id: 1, email: "joao@email.com" })
 
       const req = new Request("http://localhost", {
         method: "POST",
@@ -63,7 +66,7 @@ describe("Register Route", () => {
       const res = await POST(req)
       expect(res.status).toBe(409)
       const body = await res.json()
-      expect(body.error).toBe("Email ou CPF já cadastrado")
+      expect(body.error).toBe("Email já cadastrado")
     })
 
     it("rejeita cliente com campos faltando", async () => {
@@ -91,7 +94,9 @@ describe("Register Route", () => {
     }
 
     it("cria funcionário sem empresaId", async () => {
-      mockPrisma.funcionario.findFirst.mockResolvedValue(null)
+      mockPrisma.usuario.findUnique.mockResolvedValue(null)
+      mockPrisma.funcionario.findUnique.mockResolvedValue(null)
+      mockPrisma.empresa.findUnique.mockResolvedValue(null)
       mockPrisma.endereco.create.mockResolvedValue({ id: 2 })
       mockPrisma.funcionario.create.mockResolvedValue({ id: 1, name: "Maria Souza", email: "maria@empresa.com" })
 
@@ -106,8 +111,9 @@ describe("Register Route", () => {
     })
 
     it("cria funcionário com empresaId válido", async () => {
-      mockPrisma.funcionario.findFirst.mockResolvedValue(null)
-      mockPrisma.empresa.findUnique.mockResolvedValue({ id: 1, name: "Agiliza" })
+      mockPrisma.usuario.findUnique.mockResolvedValue(null)
+      mockPrisma.funcionario.findUnique.mockResolvedValue(null)
+      mockPrisma.empresa.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1, name: "Agiliza" })
       mockPrisma.endereco.create.mockResolvedValue({ id: 3 })
       mockPrisma.funcionario.create.mockResolvedValue({ id: 2, name: "Maria Souza" })
 
@@ -131,8 +137,9 @@ describe("Register Route", () => {
     })
 
     it("rejeita funcionário com empresaId inválido", async () => {
-      mockPrisma.funcionario.findFirst.mockResolvedValue(null)
-      mockPrisma.empresa.findUnique.mockResolvedValue(null)
+      mockPrisma.usuario.findUnique.mockResolvedValue(null)
+      mockPrisma.funcionario.findUnique.mockResolvedValue(null)
+      mockPrisma.empresa.findUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(null)
 
       const req = new Request("http://localhost", {
         method: "POST",
@@ -145,7 +152,8 @@ describe("Register Route", () => {
     })
 
     it("rejeita funcionário com email duplicado", async () => {
-      mockPrisma.funcionario.findFirst.mockResolvedValue({ id: 1, email: "maria@empresa.com" })
+      mockPrisma.usuario.findUnique.mockResolvedValue(null)
+      mockPrisma.funcionario.findUnique.mockResolvedValue({ id: 1, email: "maria@empresa.com" })
 
       const req = new Request("http://localhost", {
         method: "POST",
@@ -170,6 +178,9 @@ describe("Register Route", () => {
     }
 
     it("cria empresa com sucesso", async () => {
+      mockPrisma.usuario.findUnique.mockResolvedValue(null)
+      mockPrisma.funcionario.findUnique.mockResolvedValue(null)
+      mockPrisma.empresa.findUnique.mockResolvedValue(null)
       mockPrisma.empresa.findFirst.mockResolvedValue(null)
       mockPrisma.endereco.create.mockResolvedValue({ id: 4 })
       mockPrisma.empresa.create.mockResolvedValue({ id: 1, name: "Agiliza", email: "contato@agiliza.com" })
@@ -185,7 +196,7 @@ describe("Register Route", () => {
     })
 
     it("rejeita empresa com email duplicado", async () => {
-      mockPrisma.empresa.findFirst.mockResolvedValue({ id: 1, email: "contato@agiliza.com" })
+      mockPrisma.empresa.findUnique.mockResolvedValue({ id: 1, email: "contato@agiliza.com" })
 
       const req = new Request("http://localhost", {
         method: "POST",

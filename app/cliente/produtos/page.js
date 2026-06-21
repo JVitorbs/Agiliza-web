@@ -7,8 +7,7 @@ import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card"
 import { Badge } from "@/app/components/ui/badge"
-import { Alert, AlertDescription } from "@/app/components/ui/alert"
-import { useAlert } from "@/app/lib/useAlert"
+import { toast } from "sonner"
 
 const CATEGORY_ICONS = {
   agua: "💧", refrigerante: "🥤", salgadinho: "🥨",
@@ -28,7 +27,6 @@ export default function ClienteProdutosPage() {
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(true)
   const [adding, setAdding] = useState(null)
-  const { alert, showAlert, dismissAlert } = useAlert()
 
   useEffect(() => {
     fetch("/api/products")
@@ -47,7 +45,7 @@ export default function ClienteProdutosPage() {
     })
     const data = await res.json()
     setAdding(null)
-    if (data.error) { showAlert(data.error); return }
+    if (data.error) { toast.error(data.error); return }
     window.dispatchEvent(new Event("cart-updated"))
   }
 
@@ -58,12 +56,6 @@ export default function ClienteProdutosPage() {
 
   return (
     <div className="space-y-8">
-      {alert && (
-        <Alert variant={alert.variant} className="flex items-center justify-between">
-          <AlertDescription>{alert.message}</AlertDescription>
-          <button onClick={dismissAlert} className="ml-4 text-sm font-medium hover:underline shrink-0">Fechar</button>
-        </Alert>
-      )}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Produtos</h1>
