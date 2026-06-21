@@ -1,5 +1,11 @@
 # Testes
 
+## Para rodar os testes em coverage
+Para rodar os testes em coverage basta rodar o comando:
+```bash 
+npx vitest run --coverage
+```
+
 ## Configuração
 
 O projeto usa [Vitest](https://vitest.dev/) 4.1.7 como runner de testes, com as seguintes configurações em `vitest.config.js`:
@@ -20,9 +26,9 @@ O projeto usa [Vitest](https://vitest.dev/) 4.1.7 como runner de testes, com as 
 
 ## Resultado Atual
 
-- **20 arquivos de teste**
-- **310 testes**
-- **Cobertura**: 99.06% statements, 100% branches (os únicos arquivos abaixo de 100% são gerados pelo Prisma em `generated/prisma/internal/class.ts`)
+- **22 arquivos de teste**
+- **344 testes**
+- **Cobertura**: 100% statements, 100% branches (os únicos arquivos abaixo de 100% são gerados pelo Prisma em `generated/prisma/internal/class.ts` com 45.45% stmts)
 
 ## Arquivos de Teste
 
@@ -51,6 +57,13 @@ O projeto usa [Vitest](https://vitest.dev/) 4.1.7 como runner de testes, com as 
 | `meRoute.test.js` | GET `/api/auth/me` | 5 |
 | `registerRoute.test.js` | POST `/api/auth/register` | 13 |
 | `perfilRoute.test.js` | PATCH `/api/cliente/perfil` | 9 |
+
+### Rotas da Empresa (app/api/empresa/)
+
+| Arquivo | Rotas testadas | Testes |
+|---|---|---|
+| `empresaFuncionariosRoute.test.js` | GET, POST, DELETE `/api/empresa/funcionarios` | 18 |
+| `empresaDashboardRoute.test.js` | GET `/api/empresa/dashboard` | 8 |
 
 ### Outros
 
@@ -113,13 +126,14 @@ it("renderiza com variante primary", () => {
 | Diretório | Statements | Branches | Funcs |
 |---|---|---|---|
 | `app/api/` | 100% | 100% | 100% |
+| `app/api/empresa/` | 100% | 100% | 100% |
 | `app/components/ui/` | 100% | 100% | 100% |
 | `app/data/` | 100% | 100% | 100% |
 | `app/lib/` | 100% | 100% | 100% |
 | `app/services/` | 100% | 100% | 100% |
 | `generated/prisma/` | 88% | 100% | 25% |
 | `proxy.js` | 100% | 100% | 100% |
-| **Total** | **99.06%** | **100%** | **96.8%** |
+| **Total** | **100%** | **100%** | **100%** |
 
-Os gaps em `generated/prisma/` são de código gerado automaticamente pelo Prisma (`class.ts`, com 45.45% statements), que não é coberto por testes por ser infraestrutura gerada.
+O único gap em `generated/prisma/` é de código gerado automaticamente pelo Prisma (`class.ts`, com 45.45% statements), que não é coberto por testes por ser infraestrutura gerada.
 

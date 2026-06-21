@@ -1,4 +1,4 @@
-# Agiliza-web
+# <img src="public/img/logo_simb_azul.png" alt="Logo do Projeto" width="75"/> Agiliza-web
 
 ## Índice
 
@@ -61,6 +61,7 @@ Agiliza-web/
 │   │   ├── appointments/ #   agendamentos (GET, POST)
 │   │   ├── cart/         #   carrinho (GET, POST, PATCH, DELETE)
 │   │   ├── cliente/      #   perfil (PATCH)
+│   │   ├── empresa/      #   dashboard, funcionarios
 │   │   ├── orders/       #   pedidos (GET, POST)
 │   │   ├── products/     #   produtos (GET, POST, PUT, DELETE)
 │   │   └── services/     #   serviços (GET, POST, PUT, DELETE)
@@ -78,10 +79,13 @@ Agiliza-web/
 │   │   ├── ThemeToggle.jsx
 │   │   └── ui/           #   shadcn/ui (button, card, badge, input, dialog, etc.)
 │   ├── data/             # Store in-memory para testes
+│   ├── empresa/          # Páginas da empresa
+│   │   ├── dashboard/
+│   │   └── funcionarios/
 │   ├── funcionario/      # Páginas do funcionário
 │   │   ├── produtos/
 │   │   └── servicos/
-│   ├── lib/              # Utilitários (prisma, validation, masks, utils, useAlert)
+│   ├── lib/              # Utilitários (prisma, validation, masks, utils)
 │   ├── services/         # Camada de serviço (validações e regras de negócio)
 │   ├── globals.css       # Estilos globais + tema Tailwind
 │   ├── layout.js         # Layout raiz com Navbar + Footer
@@ -113,7 +117,7 @@ Agiliza-web/
 - `app/`: aplicação Next.js (App Router). `app/api/` contém as rotas de backend; os demais diretórios são páginas do frontend.
 - `prisma/`: schema do banco PostgreSQL + migrations + seed.
 - `generated/prisma/`: cliente Prisma gerado automaticamente (`npx prisma generate`).
-- `tests/`: testes unitários com Vitest (21 arquivos, cobrindo rotas, serviços e componentes).
+- `tests/`: testes unitários com Vitest (22 arquivos, cobrindo rotas, serviços e componentes).
 - `proxy.js`: middleware de autenticação que roda no Edge Runtime do Next.js, verifica JWT e protege rotas.
 - `docs/`: documentação do projeto (arquitetura, tecnologias, testes, histórias de usuário).
 
