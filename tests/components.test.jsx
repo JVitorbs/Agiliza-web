@@ -189,14 +189,14 @@ describe("Card", () => {
 
   it("card has base classes", () => {
     const { container } = render(<Card />)
-    expect(container.firstChild).toHaveClass("rounded-xl")
+    expect(container.firstChild).toHaveClass("rounded-lg")
     expect(container.firstChild).toHaveClass("bg-card")
   })
 
   it("card header has spacing classes", () => {
     const { container } = render(<CardHeader />)
     expect(container.firstChild).toHaveClass("flex-col")
-    expect(container.firstChild).toHaveClass("p-5")
+    expect(container.firstChild).toHaveClass("p-6")
   })
 
   it("card content has padding classes", () => {
