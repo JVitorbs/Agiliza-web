@@ -66,7 +66,7 @@ async function createCliente(body) {
 }
 
 async function createFuncionario(body) {
-  const { name, email, password, phone, cpf, empresaId } = body
+  let { name, email, password, phone, cpf, empresaId, empresaEmail } = body
 
   if (!name || !email || !password || !phone || !cpf) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
@@ -86,6 +86,14 @@ async function createFuncionario(body) {
 
   if (existing) {
     return Response.json({ error: "CPF já cadastrado" }, { status: 409 })
+  }
+
+  if (empresaEmail && !empresaId) {
+    const empresa = await prisma.empresa.findUnique({ where: { email: empresaEmail } })
+    if (!empresa) {
+      return Response.json({ error: "Empresa não encontrada com esse email" }, { status: 404 })
+    }
+    empresaId = empresa.id
   }
 
   if (empresaId) {

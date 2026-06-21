@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { UserPlus, Building2, Briefcase, User, Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
+import { UserPlus, Building2, Briefcase, User, Eye, EyeOff, Building } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card"
@@ -24,7 +25,7 @@ const SCHEMAS = {
 
 const INITIALS = {
   cliente: { name: "", email: "", password: "", phone: "", cpf: "" },
-  funcionario: { name: "", email: "", password: "", phone: "", cpf: "" },
+  funcionario: { name: "", email: "", password: "", phone: "", cpf: "", empresaEmail: "" },
   empresa: { name: "", razaoSocial: "", cnpj: "", email: "", phone: "", password: "" },
 }
 
@@ -34,14 +35,12 @@ export default function RegisterPage() {
   const [form, setForm] = useState(INITIALS.cliente)
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({})
-  const [apiError, setApiError] = useState("")
   const [loading, setLoading] = useState(false)
 
   function switchType(newType) {
     setType(newType)
     setForm(INITIALS[newType])
     setErrors({})
-    setApiError("")
   }
 
   function update(field, maskFn) {
@@ -59,7 +58,6 @@ export default function RegisterPage() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    setApiError("")
 
     const schema = SCHEMAS[type]
     const result = schema.safeParse(form)
@@ -90,7 +88,7 @@ export default function RegisterPage() {
     setLoading(false)
 
     if (data.error) {
-      setApiError(data.error)
+      toast.error(data.error)
       return
     }
 
@@ -147,12 +145,6 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {apiError && (
-              <div className="mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                {apiError}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
               {type === "empresa" ? (
                 <>
@@ -206,6 +198,14 @@ export default function RegisterPage() {
                       </button>
                     </div>
                   </Field>
+                  {type === "funcionario" && (
+                    <Field label="Email da empresa (opcional)">
+                      <div className="relative">
+                        <Building className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input className="pl-9" placeholder="contato@empresa.com" value={form.empresaEmail} onChange={update("empresaEmail")} />
+                      </div>
+                    </Field>
+                  )}
                 </>
               )}
 

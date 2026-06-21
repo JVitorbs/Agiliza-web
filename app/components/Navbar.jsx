@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ShoppingCart, Package, Calendar, Store, LogOut, User, Menu, X, Settings, UserCircle } from "lucide-react"
+import { ShoppingCart, Package, Calendar, Store, LogOut, User, Menu, X, Settings, UserCircle, Users } from "lucide-react"
 import { useEffect, useState } from "react"
 import Logo from "./Logo"
 import ThemeToggle from "./ThemeToggle"
@@ -106,10 +106,16 @@ export default function Navbar() {
           {isEmployee && (
             <>
               {isEmpresa && (
-                <Link href="/empresa/dashboard" className={`px-3 py-2 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
-                  <Store className="inline h-4 w-4 mr-1.5 -mt-0.5" />
-                  Dashboard
-                </Link>
+                <>
+                  <Link href="/empresa/dashboard" className={`px-3 py-2 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
+                    <Store className="inline h-4 w-4 mr-1.5 -mt-0.5" />
+                    Dashboard
+                  </Link>
+                  <Link href="/empresa/funcionarios" className={`px-3 py-2 text-sm rounded-lg ${isActive("/empresa/funcionarios")}`}>
+                    <Users className="inline h-4 w-4 mr-1.5 -mt-0.5" />
+                    Funcionários
+                  </Link>
+                </>
               )}
               <Link href="/funcionario/produtos" className={`px-3 py-2 text-sm rounded-lg ${isActive("/funcionario/produtos")}`}>
                 <Package className="inline h-4 w-4 mr-1.5 -mt-0.5" />
@@ -214,6 +220,10 @@ export default function Navbar() {
                           <Store className="h-4 w-4 text-muted-foreground" />
                           Dashboard
                         </Link>
+                        <Link href="/empresa/funcionarios" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
+                          <Users className="h-4 w-4 text-muted-foreground" />
+                          Funcionários
+                        </Link>
                         <Link href="/funcionario/produtos" className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg hover:bg-muted transition-colors">
                           <Package className="h-4 w-4 text-muted-foreground" />
                           Gerenciar produtos
@@ -304,9 +314,14 @@ export default function Navbar() {
             {isEmployee && (
               <>
                 {isEmpresa && (
-                  <Link href="/empresa/dashboard" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
-                    <Store className="inline h-4 w-4 mr-2" />Dashboard
-                  </Link>
+                  <>
+                    <Link href="/empresa/dashboard" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
+                      <Store className="inline h-4 w-4 mr-2" />Dashboard
+                    </Link>
+                    <Link href="/empresa/funcionarios" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/funcionarios")}`}>
+                      <Users className="inline h-4 w-4 mr-2" />Funcionários
+                    </Link>
+                  </>
                 )}
                 <Link href="/funcionario/produtos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/funcionario/produtos")}`}>
                   <Package className="inline h-4 w-4 mr-2" />Produtos
@@ -334,6 +349,9 @@ export default function Navbar() {
                   <>
                     <Link href="/empresa/dashboard" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/dashboard")}`}>
                       <Store className="inline h-4 w-4 mr-2" />Dashboard
+                    </Link>
+                    <Link href="/empresa/funcionarios" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/empresa/funcionarios")}`}>
+                      <Users className="inline h-4 w-4 mr-2" />Funcionários
                     </Link>
                     <Link href="/funcionario/produtos" onClick={() => setMobileOpen(false)} className={`px-3 py-2.5 text-sm rounded-lg ${isActive("/funcionario/produtos")}`}>
                       <Package className="inline h-4 w-4 mr-2" />Produtos
