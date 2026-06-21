@@ -42,6 +42,21 @@ describe("validation — registerClienteSchema", () => {
     expect(errs).toContain("CPF inválido")
   })
 
+  it("rejeita CPF inválido — primeiro dígito verificador com resto < 2", () => {
+    const errs = validationErrors(registerClienteSchema, { ...valid, cpf: "123.456.789-19" })
+    expect(errs).toContain("CPF inválido")
+  })
+
+  it("rejeita CPF inválido — segundo dígito verificador com resto < 2", () => {
+    const errs = validationErrors(registerClienteSchema, { ...valid, cpf: "400.201.270-07" })
+    expect(errs).toContain("CPF inválido")
+  })
+
+  it("rejeita CPF inválido — resto2 < 2 e dígito não corresponde", () => {
+    const errs = validationErrors(registerClienteSchema, { ...valid, cpf: "000.000.000-01" })
+    expect(errs).toContain("CPF inválido")
+  })
+
   it("rejeita CPF inválido — todos iguais", () => {
     const errs = validationErrors(registerClienteSchema, { ...valid, cpf: "111.111.111-11" })
     expect(errs).toContain("CPF inválido")
@@ -98,6 +113,16 @@ describe("validation — registerEmpresaSchema", () => {
 
   it("rejeita CNPJ inválido — dígito errado", () => {
     const errs = validationErrors(registerEmpresaSchema, { ...valid, cnpj: "11.222.333/0001-82" })
+    expect(errs).toContain("CNPJ inválido")
+  })
+
+  it("rejeita CNPJ inválido — primeiro dígito com resto < 2", () => {
+    const errs = validationErrors(registerEmpresaSchema, { ...valid, cnpj: "00.000.000/0000-10" })
+    expect(errs).toContain("CNPJ inválido")
+  })
+
+  it("rejeita CNPJ inválido — segundo dígito com resto < 2", () => {
+    const errs = validationErrors(registerEmpresaSchema, { ...valid, cnpj: "00.000.000/0000-01" })
     expect(errs).toContain("CNPJ inválido")
   })
 

@@ -147,6 +147,23 @@ describe("Services Route — in-memory store", () => {
     expect(body.price).toBe(200)
   })
 
+  it("PUT sem price preserva preço original na memória", async () => {
+    const createReq = new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ name: "Preservar", price: 75, availableDays: ["segunda"], startTime: "08:00", endTime: "18:00" }),
+    })
+    await POST(createReq)
+
+    const updateReq = new Request("http://localhost", {
+      method: "PUT",
+      body: JSON.stringify({ id: 1, name: "Só Nome" }),
+    })
+    const res = await PUT(updateReq)
+    const body = await res.json()
+    expect(body.name).toBe("Só Nome")
+    expect(body.price).toBe(75)
+  })
+
   it("DELETE remove serviço existente", async () => {
     const createReq = new Request("http://localhost", {
       method: "POST",
@@ -255,6 +272,19 @@ describe("Services Route — Prisma mode", () => {
     })
   })
 
+  it("POST usa body.empresaId quando header não está presente", async () => {
+    mockPrisma.servico.create.mockResolvedValue({ id: 2, name: "Via Body", price: 300 })
+
+    const req = new Request("http://localhost", {
+      method: "POST",
+      body: JSON.stringify({ name: "Via Body", price: 300, empresaId: 5, availableDays: ["segunda"], startTime: "08:00", endTime: "18:00" }),
+    })
+    const res = await POST(req)
+    expect(res.status).toBe(201)
+    const body = await res.json()
+    expect(body.name).toBe("Via Body")
+  })
+
   it("PUT atualiza serviço existente via Prisma", async () => {
     mockPrisma.servico.findUnique.mockResolvedValue({ id: 1, name: "Antigo", price: 100, availableDays: ["segunda"], startTime: "08:00", endTime: "18:00" })
     mockPrisma.servico.update.mockResolvedValue({ id: 1, name: "Atualizado", price: 150 })
@@ -280,6 +310,36 @@ describe("Services Route — Prisma mode", () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toBe("Serviço não encontrado")
+  })
+
+  it("PUT edição parcial sem price preserva preço via Prisma", async () => {
+    mockPrisma.servico.findUnique.mockResolvedValue({ id: 1, name: "Original", price: 100, availableDays: ["segunda"], startTime: "08:00", endTime: "18:00" })
+    mockPrisma.servico.update.mockResolvedValue({ id: 1, name: "Só Nome", price: 100 })
+
+    const req = new Request("http://localhost", {
+      method: "PUT",
+      body: JSON.stringify({ id: 1, name: "Só Nome" }),
+    })
+    const res = await PUT(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.name).toBe("Só Nome")
+    expect(body.price).toBe(100)
+  })
+
+  it("PUT edição parcial sem name preserva nome via Prisma", async () => {
+    mockPrisma.servico.findUnique.mockResolvedValue({ id: 1, name: "Original", price: 100, availableDays: ["segunda"], startTime: "08:00", endTime: "18:00" })
+    mockPrisma.servico.update.mockResolvedValue({ id: 1, name: "Original", price: 200 })
+
+    const req = new Request("http://localhost", {
+      method: "PUT",
+      body: JSON.stringify({ id: 1, price: 200 }),
+    })
+    const res = await PUT(req)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.name).toBe("Original")
+    expect(body.price).toBe(200)
   })
 
   it("DELETE desativa serviço via Prisma (soft delete)", async () => {
