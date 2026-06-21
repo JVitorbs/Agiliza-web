@@ -6,6 +6,8 @@ import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Badge } from "@/app/components/ui/badge"
 import { Card, CardContent } from "@/app/components/ui/card"
+import { Alert, AlertDescription } from "@/app/components/ui/alert"
+import { useAlert } from "@/app/lib/useAlert"
 import {
   Dialog,
   DialogContent,
@@ -29,6 +31,7 @@ export default function FuncionarioServicosPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [open, setOpen] = useState(false)
+  const { alert, showAlert, dismissAlert } = useAlert()
 
   useEffect(() => { loadServices() }, [])
 
@@ -99,7 +102,7 @@ export default function FuncionarioServicosPage() {
     })
     const data = await res.json()
     setSaving(false)
-    if (data.error) { alert(data.error); return }
+    if (data.error) { showAlert(data.error); return }
     handleClose()
     await loadServices()
   }
@@ -112,12 +115,18 @@ export default function FuncionarioServicosPage() {
       body: JSON.stringify({ id }),
     })
     const data = await res.json()
-    if (data.error) { alert(data.error); return }
+    if (data.error) { showAlert(data.error); return }
     await loadServices()
   }
 
   return (
     <div className="space-y-8">
+      {alert && (
+        <Alert variant={alert.variant} className="flex items-center justify-between">
+          <AlertDescription>{alert.message}</AlertDescription>
+          <button onClick={dismissAlert} className="ml-4 text-sm font-medium hover:underline shrink-0">Fechar</button>
+        </Alert>
+      )}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Gerenciar Serviços</h1>
