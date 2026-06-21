@@ -27,8 +27,16 @@ async function createCliente(body) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
   }
 
+  const emailExists = await prisma.usuario.findUnique({ where: { email } })
+    || await prisma.funcionario.findUnique({ where: { email } })
+    || await prisma.empresa.findUnique({ where: { email } })
+
+  if (emailExists) {
+    return Response.json({ error: "Email já cadastrado" }, { status: 409 })
+  }
+
   const existing = await prisma.usuario.findFirst({
-    where: { OR: [{ email }, { cpf }] },
+    where: { cpf },
   })
 
   if (existing) {
@@ -64,12 +72,20 @@ async function createFuncionario(body) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
   }
 
+  const emailExists = await prisma.usuario.findUnique({ where: { email } })
+    || await prisma.funcionario.findUnique({ where: { email } })
+    || await prisma.empresa.findUnique({ where: { email } })
+
+  if (emailExists) {
+    return Response.json({ error: "Email já cadastrado" }, { status: 409 })
+  }
+
   const existing = await prisma.funcionario.findFirst({
-    where: { OR: [{ email }, { cpf }] },
+    where: { cpf },
   })
 
   if (existing) {
-    return Response.json({ error: "Email ou CPF já cadastrado" }, { status: 409 })
+    return Response.json({ error: "CPF já cadastrado" }, { status: 409 })
   }
 
   if (empresaId) {
@@ -108,12 +124,20 @@ async function createEmpresa(body) {
     return Response.json({ error: "Todos os campos são obrigatórios" }, { status: 400 })
   }
 
+  const emailExists = await prisma.usuario.findUnique({ where: { email } })
+    || await prisma.funcionario.findUnique({ where: { email } })
+    || await prisma.empresa.findUnique({ where: { email } })
+
+  if (emailExists) {
+    return Response.json({ error: "Email já cadastrado" }, { status: 409 })
+  }
+
   const existing = await prisma.empresa.findFirst({
-    where: { OR: [{ email }, { cnpj }] },
+    where: { cnpj },
   })
 
   if (existing) {
-    return Response.json({ error: "Email ou CNPJ já cadastrado" }, { status: 409 })
+    return Response.json({ error: "CNPJ já cadastrado" }, { status: 409 })
   }
 
   const hashedPassword = await bcrypt.hash(password, 10)
