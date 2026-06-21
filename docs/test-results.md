@@ -1,90 +1,125 @@
-# Resultados de Teste
+# Testes
 
-## Visão Geral
+## Configuração
 
-Este documento descreve como o teste de unidade foi realizado para a classe `AppointmentService` e os requisitos verificados.
+O projeto usa [Vitest](https://vitest.dev/) 4.1.7 como runner de testes, com as seguintes configurações em `vitest.config.js`:
 
-## Como o teste foi realizado
+- **Ambiente**: `jsdom` (simula DOM do navegador)
+- **Globais**: ativadas (`vi`, `describe`, `it`, `expect` disponíveis sem import)
+- **Setup**: `tests/setup.js` (importa `@testing-library/jest-dom`)
+- **Inclusão**: `tests/**/*.test.{js,jsx,ts,tsx}`
 
-1. Executei o comando `npm test` para rodar os testes do Vitest.
-2. O arquivo de teste usado foi `tests/AppointmentService.test.js`.
-3. A classe testada foi `AppointmentService`, localizada em `app/services/AppointmentService.js`.
-4. Testei principalmente a função `AppointmentService.validateAppointment(appointments, newAppointment)`.
+## Execução
 
-### Cenários cobertos pelo teste
+| Comando | Descrição |
+|---|---|
+| `npm test` | Rodar todos os testes |
+| `npm run coverage` | Rodar testes com relatório de cobertura |
+| `npx vitest run tests/meu-teste.test.js` | Rodar um arquivo específico |
+| `npx vitest` | Modo watch (re-executa ao salvar) |
 
-- Validação de dados obrigatórios:
-  - `servicoId` deve ser informado.
-  - `scheduledAt` deve ser informado.
-- Validação de formato de data:
-  - a data deve ser parseável pelo `Date`.
-  - a data deve ser futura.
-- Validação de conflito de horário:
-  - não é permitido agendar o mesmo serviço no mesmo horário.
-- Fluxo de teste aleatório:
-  - o teste gera valores aleatórios para `servicoId` e `scheduledAt`.
-  - quando o valor é válido, o método deve retornar `true`.
-  - quando o valor é inválido, o método deve lançar um `Error`.
+## Resultado Atual
 
-## Requisitos dos testes
+- **20 arquivos de teste**
+- **310 testes**
+- **Cobertura**: 99.06% statements, 100% branches (os únicos arquivos abaixo de 100% são gerados pelo Prisma em `generated/prisma/internal/class.ts`)
 
-O teste atende aos seguintes requisitos:
+## Arquivos de Teste
 
-- Teste de unidade para uma classe importante do MVP.
-- Verificação de regras de negócio do agendamento de serviços.
-- Cobertura mínima de 60% de código no arquivo testado.
-- Confirmação de que o serviço funciona como esperado em casos válidos e inválidos.
+### Serviços (app/services/)
 
-## Comandos executados
+| Arquivo | Testa | Testes |
+|---|---|---|
+| `AppointmentService.test.js` | `validateDate()`, `validateConflict()`, `validateAppointment()` | 16 |
+| `CartService.test.js` | `addItem()`, `removeItem()`, `calculateTotal()` | 5 |
+| `ProductService.test.js` | `validateProduct()` — nome, preço, descrição | 19 |
+| `ServiceService.test.js` | `validateService()` — nome, preço, dias, horários | 22 |
 
-- `npm test`
-- `npm run coverage`
+### Rotas de API (app/api/)
 
-## Resultado obtido
+| Arquivo | Rotas testadas | Testes |
+|---|---|---|
+| `productsRoute.test.js` | GET, POST, PUT, DELETE `/api/products` | 15 |
+| `servicesRoute.test.js` | GET, POST, PUT, DELETE `/api/services` | 22 |
+| `cartRoute.test.js` | GET, POST, DELETE `/api/cart` (in-memory) | 5 |
+| `cartRoutePrisma.test.js` | GET, POST, PATCH, DELETE `/api/cart` (Prisma) | 24 |
+| `ordersRoute.test.js` | GET, POST `/api/orders` (in-memory) | 3 |
+| `ordersRoutePrisma.test.js` | GET, POST `/api/orders` (Prisma) | 9 |
+| `appointmentsRoute.test.js` | GET, POST `/api/appointments` | 21 |
+| `authRoute.test.js` | POST `/api/auth/login` | 9 |
+| `logoutRoute.test.js` | POST `/api/auth/logout` | 1 |
+| `meRoute.test.js` | GET `/api/auth/me` | 5 |
+| `registerRoute.test.js` | POST `/api/auth/register` | 13 |
+| `perfilRoute.test.js` | PATCH `/api/cliente/perfil` | 9 |
 
-### Saída do terminal
+### Outros
 
-![npm test output](./npmtest.png)
+| Arquivo | Testa | Testes |
+|---|---|---|
+| `middleware.test.js` | `proxy.js` (proteção de rotas, JWT, headers) | 14 |
+| `components.test.jsx` | Componentes UI (Button, Card, Badge, Alert, Dialog, Input, Tabs, Popover, cn) | 38 |
+| `lib.test.js` | `validation.js` (schemas Zod, CPF, CNPJ), `masks.js`, `error-handler.js`, `utils.js` | 58 |
+| `prisma.test.js` | `prisma.js` (singleton, production guard) | 2 |
 
-```text
-> test
-> vitest
+## Padrões de Teste
 
+### In-Memory Store
 
- DEV  v4.1.7 D:/Users/User/Desktop/Faculdade/Eng-Software/Agiliza-web
+Rotas de API que usam Prisma em produção têm uma flag `useMemoryStore` que ativa arrays em memória (`app/data/store.js`) durante os testes. Isso evita dependência de banco de dados.
 
- ✓ tests/AppointmentService.test.js (4 tests) 9ms
-   ✓ AppointmentService Random Tests (4)
-     ✓ deve validar agendamentos aleatórios 6ms
-     ✓ deve impedir conflito de horário 1ms
-     ✓ deve exigir data obrigatória 0ms
-     ✓ deve exigir o id serviço obrigatório 0ms
-
- Test Files  1 passed (1)
-      Tests  4 passed (4)
-   Start at  10:46:41
-   Duration  480ms (transform 32ms, setup 0ms, import 72ms, tests 9ms, environment 0ms)
+```js
+// Na rota:
+const useMemoryStore = process.env.NODE_ENV === "test"
 ```
 
-### Cobertura
+Os testes para o modo in-memory (ex: `cartRoute.test.js`) e para o modo Prisma (ex: `cartRoutePrisma.test.js`) são separados em arquivos diferentes.
 
-![npm coverage output](./npmcoverage.png)
+### Mocking do Prisma
 
+Para testar rotas que usam Prisma, o cliente é mockado com `vi.hoisted` + `vi.mock`:
 
-
-```text
-% Coverage report from v8
--------------------|---------|----------|---------|---------|-------------------
-File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
--------------------|---------|----------|---------|---------|-------------------
-All files          |     100 |      100 |     100 |     100 |                   
- ...mentService.js |     100 |      100 |     100 |     100 |                   
--------------------|---------|----------|---------|---------|-------------------
+```js
+const mockPrisma = vi.hoisted(() => ({
+  usuario: { findUnique: vi.fn(), findFirst: vi.fn() },
+  carrinho: { findUnique: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
+  itens: { create: vi.fn(), delete: vi.fn(), findFirst: vi.fn() },
+}))
+vi.mock("../app/lib/prisma.js", () => ({ prisma: mockPrisma }))
 ```
 
-## Conclusão
+Os mocks são configurados em `beforeEach` com `mockImplementation` ou `mockResolvedValue` para cada cenário.
 
-O teste de unidade de `AppointmentService` foi executado com sucesso e atendeu aos requisitos do MVP de agendamento de serviços.
+### Componentes
 
-- O teste cobre a validação de entrada e conflitos de horário.
-- O relatório de cobertura mostra `100%` no arquivo `AppointmentService.js`.
+Componentes React são testados com `@testing-library/react` + `jsdom`. O padrão:
+
+```js
+import { render, screen, fireEvent } from "@testing-library/react"
+
+it("renderiza com variante primary", () => {
+  render(<Button variant="default">Clique</Button>)
+  expect(screen.getByText("Clique")).toBeInTheDocument()
+})
+```
+
+### Casos Especiais
+
+- `lib.test.js` testa funções puras (validação, máscaras, utils) sem mocking
+- `prisma.test.js` mocka as dependências do Prisma (`@prisma/adapter-pg` e o client gerado) para testar o singleton em ambiente de produção
+- `middleware.test.js` testa o `proxy.js` simulando requests via `Request` do Node.js
+
+## Cobertura por Diretório
+
+| Diretório | Statements | Branches | Funcs |
+|---|---|---|---|
+| `app/api/` | 100% | 100% | 100% |
+| `app/components/ui/` | 100% | 100% | 100% |
+| `app/data/` | 100% | 100% | 100% |
+| `app/lib/` | 100% | 100% | 100% |
+| `app/services/` | 100% | 100% | 100% |
+| `generated/prisma/` | 88% | 100% | 25% |
+| `proxy.js` | 100% | 100% | 100% |
+| **Total** | **99.06%** | **100%** | **96.8%** |
+
+Os gaps em `generated/prisma/` são de código gerado automaticamente pelo Prisma (`class.ts`, com 45.45% statements), que não é coberto por testes por ser infraestrutura gerada.
+
