@@ -1,6 +1,7 @@
 import "./globals.css"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
+import { Toaster } from "sonner"
 
 export const metadata = {
   title: "Agiliza",
@@ -39,6 +40,7 @@ export default function RootLayout({ children }) {
           {children}
         </main>
         <Footer />
+        <Toaster richColors closeButton position="top-right" />
       </body>
     </html>
   )

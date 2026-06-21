@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 import { MapPin, Save, ArrowLeft, Search, User, Mail, Phone } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
@@ -22,16 +23,13 @@ export default function ConfiguracoesPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [fetchingCep, setFetchingCep] = useState(false)
-  const [profileSaved, setProfileSaved] = useState(false)
-  const [addressSaved, setAddressSaved] = useState(false)
-  const [error, setError] = useState("")
   const cepTimer = useRef(null)
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then(r => r.json())
       .then(data => {
-        if (data.error) { setError(data.error); return }
+        if (data.error) { toast.error(data.error); return }
         const u = data.user
         if (u) {
           setProfile({ name: u.name ?? "", email: u.email ?? "", phone: u.phone ?? "" })
@@ -48,7 +46,7 @@ export default function ConfiguracoesPage() {
           }))
         }
       })
-      .catch(() => setError("Erro ao carregar dados"))
+      .catch(() => toast.error("Erro ao carregar dados"))
       .finally(() => setLoading(false))
   }, [])
 
@@ -58,8 +56,6 @@ export default function ConfiguracoesPage() {
 
   async function handleProfileSubmit(e) {
     e.preventDefault()
-    setError("")
-    setProfileSaved(false)
     setSavingProfile(true)
 
     const res = await fetch("/api/cliente/perfil", {
@@ -71,10 +67,9 @@ export default function ConfiguracoesPage() {
     const data = await res.json()
     setSavingProfile(false)
 
-    if (data.error) { setError(data.error); return }
+    if (data.error) { toast.error(data.error); return }
 
-    setProfileSaved(true)
-    setTimeout(() => setProfileSaved(false), 3000)
+    toast.success("Dados salvos com sucesso!")
   }
 
   function updateAddress(field) {
@@ -94,11 +89,10 @@ export default function ConfiguracoesPage() {
 
   async function fetchAddress(cep) {
     setFetchingCep(true)
-    setError("")
     try {
       const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
       const data = await res.json()
-      if (data.erro) { setError("CEP não encontrado"); return }
+      if (data.erro) { toast.error("CEP não encontrado"); return }
       setAddress(prev => ({
         ...prev,
         street: data.logradouro ?? prev.street,
@@ -106,7 +100,7 @@ export default function ConfiguracoesPage() {
         state: data.uf ?? prev.state,
       }))
     } catch {
-      setError("Erro ao buscar CEP")
+      toast.error("Erro ao buscar CEP")
     } finally {
       setFetchingCep(false)
     }
@@ -114,8 +108,6 @@ export default function ConfiguracoesPage() {
 
   async function handleAddressSubmit(e) {
     e.preventDefault()
-    setError("")
-    setAddressSaved(false)
     setSavingAddress(true)
 
     const body = { ...address, zipCode: address.zipCode.replace(/\D/g, "") }
@@ -129,11 +121,10 @@ export default function ConfiguracoesPage() {
     const data = await res.json()
     setSavingAddress(false)
 
-    if (data.error) { setError(data.error); return }
+    if (data.error) { toast.error(data.error); return }
 
     setAddress(prev => ({ ...prev, zipCode: maskCEP(data.endereco.zipCode) }))
-    setAddressSaved(true)
-    setTimeout(() => setAddressSaved(false), 3000)
+    toast.success("Endereço salvo com sucesso!")
   }
 
   if (loading) {
@@ -162,10 +153,6 @@ export default function ConfiguracoesPage() {
           Gerencie seus dados pessoais e endereço de entrega.
         </p>
       </div>
-
-      {error && (
-        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>
-      )}
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
@@ -203,12 +190,6 @@ export default function ConfiguracoesPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {profileSaved && (
-              <div className="rounded-lg bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
-                Dados salvos com sucesso!
-              </div>
-            )}
 
             <div className="flex justify-end">
               <Button type="submit" disabled={savingProfile}>
@@ -289,12 +270,6 @@ export default function ConfiguracoesPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {addressSaved && (
-              <div className="rounded-lg bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400">
-                Endereço salvo com sucesso!
-              </div>
-            )}
 
             <div className="flex justify-end">
               <Button type="submit" disabled={savingAddress || fetchingCep}>
