@@ -16,6 +16,7 @@ import {
 
 export default function FuncionarioProdutosPage() {
   const [products, setProducts] = useState([])
+  const [empresa, setEmpresa] = useState(null)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({ name: "", description: "", price: "" })
   const [loading, setLoading] = useState(true)
@@ -23,7 +24,15 @@ export default function FuncionarioProdutosPage() {
   const [open, setOpen] = useState(false)
   const [confirmId, setConfirmId] = useState(null)
 
-  useEffect(() => { loadProducts() }, [])
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then(r => r.json())
+      .then(data => {
+        if (data.user?.empresa) setEmpresa(data.user.empresa)
+      })
+      .catch(() => {})
+    loadProducts()
+  }, [])
 
   async function loadProducts() {
     setLoading(true)
@@ -122,6 +131,9 @@ export default function FuncionarioProdutosPage() {
           <h1 className="text-2xl font-bold tracking-tight">Gerenciar Produtos</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {products.length} produto{products.length !== 1 ? "s" : ""} cadastrado{products.length !== 1 ? "s" : ""}
+            {empresa && (
+              <span> — <span className="font-medium text-foreground">{empresa.name}</span></span>
+            )}
           </p>
         </div>
         <Button onClick={startNew}>
